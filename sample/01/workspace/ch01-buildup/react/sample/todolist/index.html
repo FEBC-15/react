@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List App</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+</head>
+<body>
+  <div id="todo">
+    <header>
+      <h1>Todo List - React Sample :()</h1>
+      <p>파일 경로: <span id="filepath"></span></p>
+    </header>
+    <div id="main">
+      <div id="container">
+        <ul>
+          <li>
+            <h2>쇼핑 목록</h2>
+            <div class="todoinput">
+              <input type="text" autofocus>
+              <button type="button">추가</button>
+            </div>
+            <ul class="todolist">
+              <li>
+                <span>1</span>
+                <span><s>샘플1</s></span>
+                <button type="button">삭제</button>
+              </li>
+              <li>
+                <span>2</span>
+                <span>샘플2</span>
+                <button type="button">삭제</button>
+              </li>
+              <li>
+                <span>3</span>
+                <span>샘플3</span>
+                <button type="button">삭제</button>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <footer>
+      <p>멋쟁이 사자처럼 FrontEnd BootCamp</p>
+    </footer>
+  </div>
+
+  <script>
+    document.querySelector('#filepath').textContent = `ch${document.URL.split('/ch')[1]}index.html`;
+  </script>
+
+  <script type="text/babel">
+    /*
+          ┌───────── App ──────────┐
+          │           │            │
+        Header       Todo        Footer
+                      │
+                  ┌───┴────┐
+            TodoInput   TodoList
+                           │
+                        TodoItem
+    */
+
+
+    // 샘플 목록
+    const initItemList = [
+      { num: 1, title: '자바스크립트 공부', done: true },
+      { num: 2, title: 'JS 프로젝트', done: true },
+      { num: 3, title: 'React 공부', done: false },
+    ];
+
+
+  </script>
+</body>
+</html>

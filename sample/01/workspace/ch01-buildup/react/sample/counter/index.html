@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counter</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Counter - React Sample</h1>
+      <p>파일 경로: <span id="filepath"></span></p>
+    </header>
+    <div id="counter">
+      <button type="button" onclick="handleDown()">-</button>
+      <button type="button" onclick="handleReset(event)">0</button>
+      <button type="button" onclick="handleUp()">+</button>
+      <span>0</span>
+    </div>
+  </div>
+
+  <script>
+    document.querySelector('#filepath').textContent = `ch${document.URL.split('/ch')[1]}index.html`;
+  </script>
+
+  <script>
+
+  </script>
+
+</body>
+</html>
