@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List App</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+  <div id="todo">
+    <header>
+      <h1>Todo List - 05 데이터를 기반으로 화면 리렌더링 :)</h1>
+      <p>파일 경로: <span id="filepath"></span></p>
+    </header>
+    <div id="main">
+      <div id="container">
+        <ul>
+          <li>
+            <h2>할일 목록</h2>
+            <div class="todoinput">
+              <input type="text" onkeyup="handleAddKeydown(event)" autofocus>
+              <button type="button" onclick="handleAdd()">추가</button>
+            </div>
+            <ul class="todolist">
+              <li data-num="1">
+                <span>1</span>
+                <span onclick="toggleDone(1)"><s>샘플1</s></span>
+                <button type="button" onclick="deleteItem(1)">삭제</button>
+              </li>
+              <li data-num="2">
+                <span>2</span>
+                <span onclick="toggleDone(2)">샘플2</span>
+                <button type="button" onclick="deleteItem(2)">삭제</button>
+              </li>
+              <li data-num="3">
+                <span>3</span>
+                <span onclick="toggleDone(3)">샘플3</span>
+                <button type="button" onclick="deleteItem(3)">삭제</button>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <footer>
+      <p>멋쟁이 사자처럼 FrontEnd BootCamp</p>
+    </footer>
+  </div>
+
+  <script>
+    // location.href: http://127.0.0.1:8800/workspace-ins/ch01-buildup/todolist/sample/
+    // location.href.split('/ch'): ['http://127.0.0.1:8800/workspace-ins', '01-buildup/todolist/sample/']
+    // ch01-buildup/todolist/sample/index.html
+    document.querySelector('#filepath').textContent = `ch${location.href.split('/ch')[1]}index.html`;
+  </script>
+  
+  <script>
+    // 샘플 목록
+    const itemList = [
+      { num: 1, title: '자바스크립트 공부', done: true },
+      { num: 2, title: 'JS 프로젝트', done: true },
+      { num: 3, title: 'React 공부', done: false },
+    ];
+
+    let lastNum = itemList.length;
+
+    // itemList 배열을 이용해서 화면을 렌더링한다.
+    function render(){
+      // ul 요소 꺼내기
+      const itemListElem = document.querySelector('.todolist');
+      
+      // 기존 목록 삭제
+      while(itemListElem.firstChild){
+        itemListElem.firstChild.remove();
+      }
+      
+      // itemList 배열의 각 Todo 아이템을 화면에 추가
+      itemList.forEach((item, index) => {
+        const liElem = getTodoItemElem(item);
+        itemListElem.appendChild(liElem);
+      });
+    }
+
+    render();
+
+    // 한건의 Todo 객체를 받아서 DOM 객체로 만들어 반환
+    function getTodoItemElem(item){
+      const liElem = document.createElement('li');
+      const numSpan = document.createElement('span');
+      const titleSpan = document.createElement('span');
+      const deleteBtn = document.createElement('button');
+
+      const numTxt = document.createTextNode(item.num);
+      const titleTxt = document.createTextNode(item.title);
+      const deleteTxt = document.createTextNode('삭제');
+
+      numSpan.appendChild(numTxt);
+      if(item.done){
+        const sElem = document.createElement('s');
+        titleSpan.appendChild(sElem);
+        sElem.appendChild(titleTxt);
+      }else{
+        titleSpan.appendChild(titleTxt);
+      }
+      deleteBtn.appendChild(deleteTxt);
+
+      liElem.dataset.num = item.num;
+      titleSpan.setAttribute('onclick', `toggleDone(${item.num})`);
+      deleteBtn.setAttribute('type', 'button');
+      deleteBtn.setAttribute('onclick', `deleteItem(${item.num})`);
+      
+      liElem.appendChild(numSpan);
+      liElem.appendChild(titleSpan);
+      liElem.appendChild(deleteBtn);
+
+      return liElem;
+    }
+
+    // 할일 추가
+    function addItem(title){
+      console.log('할일 추가');
+      // 데이터 갱신, itemList에 item 추가
+      // num, title, done 속성을 가진 item 객체 생성
+      const item = {
+        num: ++lastNum,
+        title,
+        done: false,
+      };
+      itemList.push(item);
+
+      // 화면 갱신
+      render();
+    }
+
+    // 추가 버튼 클릭 이벤트 핸들러
+    const handleAdd = () => {
+      console.log('추가 버튼 클릭');
+      // 입력한 제목 꺼내기
+      const inputElem = document.querySelector('.todoinput > input');
+      if(inputElem.value.trim() !== ''){ // 빈 문자열만 입력한게 아니라면
+        addItem(inputElem.value.trim());
+        inputElem.value = '';
+        inputElem.focus();
+      }
+    };
+
+    // 엔터 이벤트 핸들러
+    const handleAddKeydown = (event) => {
+      console.log('keydown', event);
+      if(event.key === 'Enter') handleAdd();
+    };
+
+    // 완료/미완료 처리
+    function toggleDone(num){
+      console.log(num, '완료/미완료');
+      // 데이터 갱신, itemList에서 num에 해당하는 item의 done 값을 수정
+      // itemList에서 num 값으로 item 조회
+      let selectedItem;
+
+      // find 메서드 사용
+      selectedItem = itemList.find(item => item.num === num);
+      
+      // item의 done 값을 수정
+      selectedItem.done = !selectedItem.done;
+
+      // 화면 갱신
+      render();
+    }
+
+    // 할일 삭제
+    function deleteItem(num){
+      console.log(num, '할일 삭제');
+      // 데이터 갱신, itemList에서 num에 해당하는 item 삭제
+      const index = itemList.findIndex(item => item.num === num);
+      itemList.splice(index, 1);
+
+      // 화면 갱신
+      render();
+    }
+  </script>
+</body>
+</html>
