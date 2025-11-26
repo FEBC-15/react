@@ -17,61 +17,29 @@
     const h1 = Reaction.createElement('h1', null, 'Counter - 03 createElement() 함수 만들기');
 
     // <p>파일 경로: <span id="filepath"></span></p>
-    // const span1 = Reaction.createElement('span', {});
-
-
-    const span1 = document.createElement('span');
-    span1.setAttribute('id', 'filepath');
-
-    const p = document.createElement('p');
-    const pTxt = document.createTextNode('파일 경로: ');
-    p.appendChild(pTxt);
-    p.appendChild(span1);
+    const span1 = Reaction.createElement('span', { id: 'filepath' });
+    const p = Reaction.createElement('p', null, '파일 경로: ', span1);
 
     // <header></header>
-    const header = document.createElement('header');
-    header.appendChild(h1);
-    header.appendChild(p);
+    const header = Reaction.createElement('header', null, h1, p);
 
     // <button type="button" onclick="handleDown()">-</button>
-    const button1 = document.createElement('button');
-    button1.setAttribute('type', 'button');
-    button1.setAttribute('onclick', 'handleDown()');
-    const button1Txt = document.createTextNode('-');
-    button1.appendChild(button1Txt);
+    const button1 = Reaction.createElement('button', { type: 'button', onclick: 'handleDown()' }, '-');
 
     // <button type="button" onclick="handleReset(event)">0</button>
-    const button2 = document.createElement('button');
-    button2.setAttribute('type', 'button');
-    button2.setAttribute('onclick', 'handleReset(event)');
-    const button2Txt = document.createTextNode(0);
-    button2.appendChild(button2Txt);
+    const button2 = Reaction.createElement('button', { type: 'button', onclick: 'handleReset(event)' }, 0);
 
     // <button type="button" onclick="handleUp()">+</button>
-    const button3 = document.createElement('button');
-    button3.setAttribute('type', 'button');
-    button3.setAttribute('onclick', 'handleUp()');
-    const button3Txt = document.createTextNode('+');
-    button3.appendChild(button3Txt);
+    const button3 = Reaction.createElement('button', { type: 'button', onclick: 'handleUp()' }, '+');
 
     // <span>0</span>
-    const span2 = document.createElement('span');
-    const span2Txt = document.createTextNode(0);
-    span2.appendChild(span2Txt);
+    const span2 = Reaction.createElement('span', null, 0);
 
     // <div id="counter"></div>
-    const counter = document.createElement('div');
-    counter.setAttribute('id', 'counter');
-    counter.appendChild(button1);
-    counter.appendChild(button2);
-    counter.appendChild(button3);
-    counter.appendChild(span2);
+    const counter = Reaction.createElement('div', { id: 'counter' }, button1, button2, button3, span2);
 
     // <div id="app"></div>
-    const app = document.createElement('div');
-    app.setAttribute('id', 'app');
-    app.appendChild(header);
-    app.appendChild(counter);
+    const app = Reaction.createElement('div', { id: 'app' }, header, counter);
 
     // root 요소에 app 추가
     document.querySelector('#root').appendChild(app);

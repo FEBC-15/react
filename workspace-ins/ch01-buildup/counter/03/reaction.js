@@ -5,12 +5,17 @@ const reaction = {
 
     // 속성 추가
     if(props){
-
+      for(const attrName in props){
+        const value = props[attrName];
+        elem.setAttribute(attrName, value);
+      }
     }
 
     // 자식 노드 추가
     for(let child of children){
-      child = document.createTextNode(child);
+      if(typeof child === 'string' || typeof child === 'number'){
+        child = document.createTextNode(child);
+      }
       elem.appendChild(child);
     }
 
