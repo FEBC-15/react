@@ -13,29 +13,16 @@
   <script type="module">
     import Reaction from './reaction.js';
 
-    // <h1>Counter - 04 createElement() 함수 하나로 통합</h1>
-    const h1 = Reaction.createElement('h1', null, 'Counter - 04 createElement() 함수 하나로 통합');
-
-    // <p>파일 경로: <span id="filepath"></span></p>
-    const span1 = Reaction.createElement('span', { id: 'filepath' });
-    const p = Reaction.createElement('p', null, '파일 경로: ', span1);
-
-    // <button type="button" onclick="handleDown()">-</button>
-    const button1 = Reaction.createElement('button', { type: 'button', onclick: 'handleDown()' }, '-');
-
-    // <button type="button" onclick="handleReset(event)">0</button>
-    const button2 = Reaction.createElement('button', { type: 'button', onclick: 'handleReset(event)' }, 0);
-
-    // <button type="button" onclick="handleUp()">+</button>
-    const button3 = Reaction.createElement('button', { type: 'button', onclick: 'handleUp()' }, '+');
-
-    // <span>0</span>
-    const span2 = Reaction.createElement('span', null, 0);
-
     const App = 
       Reaction.createElement('div', { id: 'app' }, 
-        Reaction.createElement('header', null, h1, p), 
-        Reaction.createElement('div', { id: 'counter' }, button1, button2, button3, span2));
+        Reaction.createElement('header', null, 
+          Reaction.createElement('h1', null, 'Counter - 04 createElement() 함수 하나로 통합'), 
+          Reaction.createElement('p', null, '파일 경로: ', Reaction.createElement('span', { id: 'filepath' }))), 
+        Reaction.createElement('div', { id: 'counter' }, 
+          Reaction.createElement('button', { type: 'button', onclick: 'handleDown()' }, '-'), 
+          Reaction.createElement('button', { type: 'button', onclick: 'handleReset(event)' }, 0), 
+          Reaction.createElement('button', { type: 'button', onclick: 'handleUp()' }, '+'), 
+          Reaction.createElement('span', null, 0)));
 
     // root 요소에 App 추가
     document.querySelector('#root').appendChild(App);
