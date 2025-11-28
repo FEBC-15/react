@@ -41,19 +41,19 @@
       );
     }
 
-    function Todo({ itemList }){
+    function Todo({ itemList, addItem, toggleDone, deleteItem }){
       return (
         Reaction.createElement('div', { id: 'main' },
           Reaction.createElement('div', { id: 'container' },
             Reaction.createElement('ul', null,
               Reaction.createElement('li', null,
                 Reaction.createElement('h2', null, '할일 목록'),
-                TodoInput,
-                TodoList({ itemList })))))
+                TodoInput({ addItem }),
+                TodoList({ itemList, toggleDone, deleteItem })))))
       );
     }
 
-    function TodoInput(){
+    function TodoInput({ addItem }){
       // 추가 버튼 클릭 이벤트 핸들러
       const handleAdd = () => {
         console.log('추가 버튼 클릭');
@@ -79,22 +79,23 @@
       );
     }
 
-    function TodoList({ itemList }){
+    function TodoList({ itemList, toggleDone, deleteItem }){
       // list = [ li, li, li ]
       const list = itemList.map(item => {
-        return TodoItem({ item });
+        return TodoItem({ item, toggleDone, deleteItem });
       });
       return (
         Reaction.createElement('ul', { class: 'todolist' }, list)
       );
     }
 
-    function TodoItem({ item }){
+    function TodoItem({ item, toggleDone, deleteItem }){
       return (
         Reaction.createElement('li', { 'data-num': item.num },
           Reaction.createElement('span', null, item.num),
-          Reaction.createElement('span', null, item.done ? Reaction.createElement('s', null, item.title) : item.title),
-          Reaction.createElement('button', { type: 'button' }, '삭제'))
+          Reaction.createElement('span', { onclick: toggleDone }, 
+            item.done ? Reaction.createElement('s', null, item.title) : item.title),
+          Reaction.createElement('button', { type: 'button', onclick: deleteItem }, '삭제'))
       );
     }
 
@@ -106,7 +107,7 @@
         { num: 3, title: 'React 공부', done: false },
       ];
 
-      const [ itemList, setItemList ] = Reaction.useState(initItemList); 
+      const [ itemList, setItemList ] = Reaction.useState(initItemList);
 
       let lastNum = itemList.length;
 
@@ -120,8 +121,13 @@
           title,
           done: false,
         };
-        itemList.push(item);
-        setItemList(itemList); // 상태 변경
+        
+        // itemList.push(item);
+        // setItemList(itemList); // 객체일 경우 주소가 바뀌지 않았기 때문에 상태가 변경된 걸로 인식하지 않음
+
+        const newItemList = [ ...itemList ];
+        newItemList.push(item);
+        setItemList(newItemList); // 상태 변경
       }
 
       // 완료/미완료 처리
@@ -129,62 +135,12 @@
         console.log(num, '완료/미완료');
         // 데이터 갱신, itemList에서 num에 해당하는 item의 done 값을 수정
         // itemList에서 num 값으로 item 조회
-        let selectedItem;
-
-        // for문으로 작성
-        for(let i=0; i<itemList.length; i++){
-          const item = itemList[i];
-          if(item.num === num){
-            selectedItem = item;
-          }
-        }
-
-        // for-of문으로 작성
-        for(let item of itemList){
-          if(item.num === num){
-            selectedItem = item;
-          }
-        }
-
-        // forEach 메서드 사용
-        itemList.forEach(item => {
-          if(item.num === num){
-            selectedItem = item;
-          }
-        });
-
-        // find 메서드 사용
-        selectedItem = itemList.find(item => item.num === num);
+        let selectedItem = itemList.find(item => item.num === num);
         
         // item의 done 값을 수정
         selectedItem.done = !selectedItem.done;
-        
-        console.log(itemList);
 
-        // 화면 갱신, done 값에 따라서 <s> 추가 또는 삭제
-        const targetLiElem = document.querySelector(`.todolist > li[data-num="${num}"]`);
-        // HTMLElement.childNodes: 자식 노드들이 저장된 유사배열 객체(TextNode, CommentNode 등 포함)
-        // HTMLElement.children: 자식 노드들이 저장된 유사배열 객체(ElementNode 만 포함)
-        const titleSpan = targetLiElem.children[1]; // <span>자바스크립트 공부</span>
-        if(selectedItem.done){ // 미완료에서 완료로 변경
-          // <span>자바스크립트 공부</span> -> <span><s>자바스크립트 공부</s></span>
-          // <s></s>
-          const sElem = document.createElement('s');
-
-          // <span></span>
-          // <s>자바스크립트 공부</s>
-          sElem.appendChild(titleSpan.firstChild);
-
-          // <span><s>자바스크립트 공부</s></span>
-          titleSpan.appendChild(sElem);
-
-        }else{ // 완료에서 미완료로 변경
-          // <span><s>자바스크립트 공부</s></span> -> <span>자바스크립트 공부</span>
-          // <span><s></s>자바스크립트 공부</span>
-          titleSpan.appendChild(titleSpan.firstChild.firstChild);
-          // <span>자바스크립트 공부</span>
-          titleSpan.firstChild.remove();
-        }
+        setItemList(itemList);
       }
 
       // 할일 삭제

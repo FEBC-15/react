@@ -66,6 +66,7 @@ const reaction = {
       // Object.is(a, b): a와 b가 같은지 여부를 반환
       // a, b가 원시형 타입일때는 값이 다를경우 false됨
       // a, b가 참조형 타입일때는 내부의 속성이 바뀌어도 참조 주소가 바뀌지 않았다면 true가 됨
+      // oldValue [{},{},{}] => newValue [{},{},{},{}]
       if(!Object.is(oldValue, newValue)){
         console.log('Reaction: 상태 변경으로 인해 리렌더링 수행');
         _root.render();
@@ -77,3 +78,10 @@ const reaction = {
 };
 
 export default reaction;
+
+// const [ a, setA ] = useState(10); // a = 10
+// setA(20); // oldValue = 10; newValue = 20; Object.is(10, 20) // false, 리렌더링 수행
+
+// const [ a, setA ] = useState([10]); // a = [10]
+// a[0] = 20;
+// setA(a); // oldValue = a123; newValue = a123; Object.is(a123, a123) // true, 리렌더링 X
