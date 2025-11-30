@@ -1,8 +1,11 @@
+# history
+.history
+
 # vscode workspce 설정
-.vscode/settings.json
+/.vscode/settings.json
 
 # 작업 폴더
-workspace
+/workspace/
 
 # Logs
 logs

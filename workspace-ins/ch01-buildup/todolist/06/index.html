@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List App</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="module">
+
+    import Reaction from '../reaction.js';
+
+    function App(){
+      return (
+        Reaction.createElement('div', { id: 'todo' }, 
+          Reaction.createElement('header', null,
+            Reaction.createElement('h1', null, 'Todo List - 06 Reaction.createElement() 사용해서 UI 구성 :)'),
+            Reaction.createElement('p', null, '파일 경로: ',
+              Reaction.createElement('span', { id: 'filepath' }, `ch${location.href.split('/ch')[1]}index.html`))),
+          Reaction.createElement('div', { id: 'main' },
+            Reaction.createElement('div', { id: 'container' },
+              Reaction.createElement('ul', null,
+                Reaction.createElement('li', null,
+                  Reaction.createElement('h2', null, '할일 목록'),
+                  Reaction.createElement('div', { class: 'todoinput' },
+                    Reaction.createElement('input', { type: 'text', autofocus: true }),
+                    Reaction.createElement('button', { type: 'button' }, '추가')),
+                  Reaction.createElement('ul', { class: 'todolist' },
+                    Reaction.createElement('li', { 'data-num': '1' },
+                      Reaction.createElement('span', null, '1'),
+                      Reaction.createElement('span', null, Reaction.createElement('s', null, '샘플1')),
+                      Reaction.createElement('button', { type: 'button' }, '삭제'))))))),
+          Reaction.createElement('footer', null,
+            Reaction.createElement('p', null, '멋쟁이 사자처럼 FrontEnd BootCamp'))
+        )
+      );
+    }
+
+    Reaction.createRoot(document.querySelector('#root')).render(App);
+
+  </script>
+
+</body>
+</html>

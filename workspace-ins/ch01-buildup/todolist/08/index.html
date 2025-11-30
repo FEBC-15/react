@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Todo List App</title>
+  <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
+</head>
+<body>
+
+  <div id="root"></div>
+
+  <script type="module">
+
+    /*
+          ┌───────── App ──────────┐
+          │           │            │
+        Header       Todo        Footer
+                      │
+                  ┌───┴────┐
+            TodoInput   TodoList
+                           │
+                        TodoItem
+    */
+
+    import Reaction from '../reaction.js';
+
+    function Header(){
+      return (
+        Reaction.createElement('header', null,
+          Reaction.createElement('h1', null, 'Todo List - 08 상태(데이터) 변경시 화면 리렌더링 :)'),
+          Reaction.createElement('p', null, '파일 경로: ',
+            Reaction.createElement('span', { id: 'filepath' }, `ch${location.href.split('/ch')[1]}index.html`)))
+      );
+    }
+
+    function Footer(){
+      return (
+        Reaction.createElement('footer', null,
+          Reaction.createElement('p', null, '멋쟁이 사자처럼 FrontEnd BootCamp'))
+      );
+    }
+
+    function Todo({ itemList, addItem, toggleDone, deleteItem }){
+      return (
+        Reaction.createElement('div', { id: 'main' },
+          Reaction.createElement('div', { id: 'container' },
+            Reaction.createElement('ul', null,
+              Reaction.createElement('li', null,
+                Reaction.createElement('h2', null, '할일 목록'),
+                TodoInput({ addItem }),
+                TodoList({ itemList, toggleDone, deleteItem })))))
+      );
+    }
+
+    function TodoInput({ addItem }){
+      // 추가 버튼 클릭 이벤트 핸들러
+      const handleAdd = () => {
+        console.log('추가 버튼 클릭');
+        // 입력한 제목 꺼내기
+        const inputElem = document.querySelector('.todoinput > input');
+        if(inputElem.value.trim() !== ''){ // 빈 문자열만 입력한게 아니라면
+          addItem(inputElem.value.trim());
+          inputElem.value = '';
+          inputElem.focus();
+        }
+      };
+
+      // 엔터 이벤트 핸들러
+      const handleAddKeyUp = (event) => {
+        console.log('keyup', event);
+        if(event.key === 'Enter') handleAdd();
+      };
+
+      return (
+        Reaction.createElement('div', { class: 'todoinput' },
+          Reaction.createElement('input', { type: 'text', autofocus: true, onkeyup: handleAddKeyUp }),
+          Reaction.createElement('button', { type: 'button', onclick: handleAdd }, '추가'))
+      );
+    }
+
+    function TodoList({ itemList, toggleDone, deleteItem }){
+      // list = [ li, li, li ]
+      const list = itemList.map(item => {
+        return TodoItem({ item, toggleDone, deleteItem });
+      });
+      return (
+        Reaction.createElement('ul', { class: 'todolist' }, list)
+      );
+    }
+
+    // Props
+    function TodoItem({ item, toggleDone, deleteItem }){
+      return (
+        Reaction.createElement('li', { 'data-num': item.num },
+          Reaction.createElement('span', null, item.num),
+          Reaction.createElement('span', { onclick: () => toggleDone(item.num) }, 
+            item.done ? Reaction.createElement('s', null, item.title) : item.title),
+          Reaction.createElement('button', { type: 'button', onclick: () => deleteItem(item.num) }, '삭제'))
+      );
+    }
+
+    function App(){
+      // 샘플 목록
+      const initItemList = [
+        { num: 1, title: '자바스크립트 공부', done: true },
+        { num: 2, title: 'JS 프로젝트', done: true },
+        { num: 3, title: 'React 공부', done: false },
+      ];
+
+      // State
+      const [ itemList, setItemList ] = Reaction.useState(initItemList);
+
+      // 할일 추가
+      function addItem(title){
+        console.log('할일 추가');
+        // 데이터 갱신, itemList에 item 추가
+        // num, title, done 속성을 가진 item 객체 생성
+        let lastNum = itemList[itemList.length-1]?.num ?? 0;
+        const item = {
+          num: lastNum+1,
+          title,
+          done: false,
+        };
+        
+        // itemList.push(item);
+        // setItemList(itemList); // 객체일 경우 주소가 바뀌지 않았기 때문에 상태가 변경된 걸로 인식하지 않음
+
+        const newItemList = [ ...itemList ];
+        newItemList.push(item);
+        setItemList(newItemList); // 상태 변경
+      }
+
+      // 완료/미완료 처리
+      function toggleDone(num){
+        console.log(num, '완료/미완료');
+
+        // let selectedItem = itemList.find(item => item.num === num);
+        // selectedItem.done = !selectedItem.done;
+        // setItemList([ ...itemList ]);
+
+        const newItemList = itemList.map(item => item.num === num ? { ...item, done: !item.done } : item);
+        setItemList(newItemList);
+      }
+
+      // 할일 삭제
+      function deleteItem(num){
+        console.log(num, '할일 삭제');
+        // 데이터 갱신, itemList에서 num에 해당하는 item 삭제
+        // 원본 배열에서 작업
+        // const index = itemList.findIndex(item => item.num === num);
+        // itemList.splice(index, 1);
+
+        const newItemList = itemList.filter(item => item.num !== num);
+        setItemList(newItemList);
+      }
+
+      return (
+        Reaction.createElement('div', { id: 'todo' }, Header, Todo({ itemList, addItem, toggleDone, deleteItem }), Footer)
+      );
+    }
+
+    Reaction.createRoot(document.querySelector('#root')).render(App);
+
+  </script>
+
+</body>
+</html>
