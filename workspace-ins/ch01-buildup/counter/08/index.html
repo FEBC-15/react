@@ -7,68 +7,7 @@
   <link rel="icon" href="/assets/favicon.ico" type="image/x-icon">
 </head>
 <body>
-
   <div id="root"></div>
-
-  <script type="module">
-    import Reaction from './reaction.js';
-
-    // 헤더 컴포넌트
-    function Header(){
-      console.log('Header 렌더링됨.');
-      return (
-        Reaction.createElement('header', null, 
-          Reaction.createElement('h1', null, 'Counter - 08 컴포넌트를 모듈로 분리'), 
-          Reaction.createElement('p', null, '파일 경로: ', 
-            Reaction.createElement('span', null, `ch${document.URL.split('/ch')[1]}index.html`)))
-      );
-    }
-
-    // Counter 컴포넌트
-    function Counter(){
-      console.log('Counter 렌더링됨.');
-      
-      // 상태
-      const [ count, setCount ] = Reaction.useState(5);
-
-      // 카운터 감소
-      const handleDown = () => {
-        setCount(count - 1);
-      };
-
-      // 카운터 증가
-      const handleUp = () => {
-        setCount(count + 1);
-      };
-
-      // 카운터 초기화
-      const handleReset = event => {
-        console.log(event);
-        setCount(0);
-      };
-      
-      return (
-        Reaction.createElement('div', { id: 'counter' }, 
-          Reaction.createElement('button', { type: 'button', onclick: handleDown }, '-'), 
-          Reaction.createElement('button', { type: 'button', onclick: handleReset }, 0), 
-          Reaction.createElement('button', { type: 'button', onclick: handleUp }, '+'), 
-          Reaction.createElement('span', null, count))
-      );
-    }
-
-    // App 컴포넌트
-    function App(){
-      console.log('App 렌더링됨.');
-      return (
-        Reaction.createElement('div', { id: 'app' }, Header, Counter)
-      );
-    }
-
-    // root 요소에 App 추가
-    Reaction.createRoot(document.querySelector('#root')).render(App);
-
-    // document.querySelector('#root').appendChild(App);
-  </script>
-
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
