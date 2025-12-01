@@ -4,23 +4,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello - React</title>
+  <title>Hello React</title>
   <link rel="icon" href="/assets/favicon.ico">
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone@7/babel.min.js"></script>
 </head>
 
 <body>
-  <div id="root"></div>
-
-  <script>
-    function App(){
-      // <h1>Hello DOM</h1>
-      return React.createElement('h1', null, '03 Hello React');
-    }
-
-    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
-  </script>
+  <div>
+    <h1>04 Hello JSX with babel</h1>
+  </div>
 </body>
 
 </html>
