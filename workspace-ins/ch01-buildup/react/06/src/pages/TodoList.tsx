@@ -7,8 +7,10 @@ interface TodoListProps {
   deleteItem: (num: number) => void;
 }
 
-function TodoList({ itemList, toggleDone, deleteItem }: TodoListProps){
-  const list = itemList.map(item => <TodoItem key={ item.num } item={ item } toggleDone={ toggleDone } deleteItem={ deleteItem } />);
+function TodoList(props: TodoListProps){
+// function TodoList({ itemList, toggleDone, deleteItem }: TodoListProps){
+  const list = props.itemList.map(item => <TodoItem key={ item.num } item={ item } { ...props } />);
+  // const list = itemList.map(item => <TodoItem key={ item.num } item={ item } toggleDone={ toggleDone } deleteItem={ deleteItem } />);
   return (
     <ul className="todolist">
       { list }
