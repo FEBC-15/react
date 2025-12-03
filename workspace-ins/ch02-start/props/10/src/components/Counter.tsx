@@ -20,8 +20,8 @@ export default function Counter(){
 
   return (
     <div id="counter">
-      <Button onClick={ countDown }>-_-</Button>
-      <Button onClick={ reset }>0_0</Button>
+      <Button type="submit" onClick={ countDown }>-_-</Button>
+      <Button>0_0</Button>
       <Button onClick={ countUp }>+_+</Button>
       <span>{ count }</span>
     </div>
