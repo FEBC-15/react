@@ -15,6 +15,14 @@ const cellphoneExp = /^010[0-9]{4}[0-9]{4}$/;
 function App() {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
+    // mode: 'onSubmit', // 최초 검증 시점, default: submit 버튼 클릭 시 검증
+    // mode: 'onChange', // 입력 시 검증
+    // mode: 'onBlur', // 포커스를 벗어나면 검증
+    // reValidateMode: 'onChange', // 재검증 시점, default
+    // reValidateMode: 'onBlur',
+    // reValidateMode: 'onSubmit',
+    criteriaMode: 'firstError', // default, 첫 오류 하나만 포함
+    // criteriaMode: 'all', // 에러 모드, 모든 오류 포함
     defaultValues: {
       name: '',
       email: '',
