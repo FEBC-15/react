@@ -351,7 +351,7 @@
 
 * JSX에서 style 속성 추가
   ```jsx
-  <div style={{ backgroundColor: 'red', fontSize: '20px' }}>Hello</div>
+  <div style={ { backgroundColor: 'red', fontSize: '20px' } }>Hello</div>
   ```
 
 * JSX에서 style 속성을 동적으로 추가
@@ -368,15 +368,15 @@
   ```jsx
   const color = 'blue';
   const size = 24;
-  <div style={{ color: color, fontSize: `${size}px` }}>Hello</div>
+  <div style={ { color: color, fontSize: `${size}px` } }>Hello</div>
   ```
 
 * 주의사항
   - 숫자 값은 자동으로 `px` 단위가 붙지만, 단위가 필요한 경우 문자열로 작성해야 함
     ```jsx
-    <div style={{ width: 100 }}>        // width: 100px
-    <div style={{ width: '100%' }}>     // width: 100%
-    <div style={{ width: '100rem' }}>   // width: 100rem
+    <div style={ { width: 100 } }>        // width: 100px
+    <div style={ { width: '100%' } }>     // width: 100%
+    <div style={ { width: '100rem' } }>   // width: 100rem
     ```
 
 6 보간된 HTML 문자열은 인코딩됨
@@ -397,9 +397,9 @@
   1. dangerouslySetInnerHTML 속성을 사용하면 HTML 태그를 인코딩하지 않음
     ```jsx
     const App(){
-      // { msg }를 <span dangerouslySetInnerHTML={{ __html: msg }}></span>로 변경
+      // { msg }를 <span dangerouslySetInnerHTML={ { __html: msg } }></span>로 변경
       const msg = '<i>World</i>';
-      return <span>Hello <span dangerouslySetInnerHTML={{ __html: msg }}></span></span>
+      return <span>Hello <span dangerouslySetInnerHTML={ { __html: msg } }></span></span>
     }
     ```
   2. JSX는 XSS 공격에 안전하므로 JSX를 사용

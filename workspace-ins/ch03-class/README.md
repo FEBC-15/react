@@ -186,8 +186,7 @@ export default ClickMe;
 * JSX를 이용해서 UI를 리턴
 
 ### 1-4 componentDidMount() (함수형 컴포넌트에서는 useEffect로 사용 가능)
-* 컴포넌트 마운트가 완료되고 브라우저 DOM 트리에 반영된 후 호출됨
-  - 컴포넌트가 화면에 보이기 직전에 호출
+* 컴포넌트 마운트가 완료되고 브라우저 DOM 트리에 반영되어 화면에 렌더링 된 후 호출됨
 
 ## 2 updating
 * 마운트 된 컴포넌트의 상태(state)나 속성(props)이 변경되어 리렌더링 되는 단계
