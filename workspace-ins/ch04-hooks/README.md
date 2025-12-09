@@ -54,8 +54,8 @@ useEffect(setup, dependencies?);
   - 컴포넌트가 업데이트될 때 `setup` 함수를 호출할지 말지 여부를 결정하는데 사용
   - 컴포넌트가 마운트될 때는 `dependencies` 여부와 상관없이 `setup`이 호출됨
   - `dependencies`를 생략하면, 컴포넌트가 업데이트될 때 항상 `setup`이 호출됨
-  - `dependencies`에 빈 배열을 지정하면 업데이트에서는 호출되지 않음
-  - `dependencies`를 지정하면, 해당 값들이 변경될 때만 `setup` 함수가 호출됨  
+  - `dependencies`에 빈 배열을 지정하면, 컴포넌트가 업데이트될 때 호출되지 않음
+  - `dependencies`를 지정하면, 컴포넌트가 업데이트 될 때 지정한 값 중 하나라도 수정되었을 경우에만 `setup` 함수가 호출됨 
 
 ## 1.3 useReducer
 
