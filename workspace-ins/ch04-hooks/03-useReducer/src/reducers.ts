@@ -1,4 +1,4 @@
-interface CounterAction {
+export interface CounterAction {
   type: 'UP' | 'DOWN' | 'RESET';
   value: number;
 }
@@ -27,5 +27,10 @@ export function counterReducer(state: number, action: CounterAction) {
       break;
   }
 
+  console.log(`${state} ${action.type} ${action.value} -> ${newState}`);
   return newState;
 }
+
+console.log(counterReducer(5, { type: 'UP', value: 3 }) === 8); // 8
+console.log(counterReducer(19, { type: 'DOWN', value: 10 }) === 9); // 9
+console.log(counterReducer(30, { type: 'RESET', value: 10 }) === 10); // 10
