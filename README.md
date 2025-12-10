@@ -395,10 +395,16 @@
 <summary><h3>10일차(2025.12.09 화)</h3></summary>
 
 #### 오전(3시간)
-
+* 🔊 [4장 리액트 훅](./workspace-ins/ch04-hooks#4장-리액트-훅)
+  - 🔊 [useState](./workspace-ins/ch04-hooks#usestate)
+    + 💻 [01 useState - 상태 관리](./workspace-ins/ch04-hooks/01-useState)
+      + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/01-useState 폴더 생성
+      + workspace/ch04-hooks/01-useState.html 참고해서 컴포넌트 생성
 
 #### 오후(3시간)
-
+- 🔊 [useEffect](./workspace-ins/ch04-hooks#useeffect)
+  + 💻 [02 useEffect - side effect 관리](./workspace-ins/ch04-hooks/02-useEffect)
+    + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/02-useEffect 폴더 생성
 
 </details>
 

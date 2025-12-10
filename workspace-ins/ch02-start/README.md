@@ -177,9 +177,9 @@
     "compilerOptions": {
       "baseUrl": ".",
       "paths": {
-        "@/*": ["src/*"],
         "@components/*": ["src/components/*"],
         "@pages/*": ["src/pages/*"],
+        "@/*": ["src/*"],
       },
     }
   }
