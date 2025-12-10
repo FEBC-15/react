@@ -12,9 +12,9 @@ function Counter({ children }: CounterProps) {
 
   const initCount = Number(children);
   // const [ count, setCount ] = useState(initCount);
-  // const [ count, countDispatch ] = useReducer(counterReducer, initCount);
+  const [ count, countDispatch ] = useReducer(counterReducer, initCount);
   
-  const [ count, countDispatch ] = useMyReducer(counterReducer, initCount); // custom hooks으로 작성
+  // const [ count, countDispatch ] = useMyReducer(counterReducer, initCount); // custom hooks으로 작성
   const [ step, setStep ] = useState(1);
 
   // 카운트 감소
