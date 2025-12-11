@@ -406,6 +406,16 @@
   + 💻 [02 useEffect - side effect 관리](./workspace-ins/ch04-hooks/02-useEffect)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/02-useEffect 폴더 생성
 
+* 12장 앱 개발
+  * 12-1 Todo List
+    - 💻 [01 기본 Todo List](./workspace-ins/ch12-app/todolist/01-basic)
+
+#### 과제
+```
+## 과제: TodoList 작성 1
+- ch12-app/todolist/01-basic 예제를 분석해서 각 줄마다 주석 추가
+```
+
 </details>
 
 <details>
@@ -419,16 +429,16 @@
   + 💻 [04 useRef - 값이 유지되는 데이터 관리, DOM 엘리먼트 참조](./workspace-ins/ch04-hooks/04-useRef)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/04-useRef 폴더 생성
 
-#### 오후(3시간)
+#### 오후(3시간 30분)
 - 🔊 [useMemo](./workspace-ins/ch04-hooks#usememo)
   + 💻 [05 useMemo - 함수의 반환값을 memoize](./workspace-ins/ch04-hooks/05-useMemo)
     + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/05-useMemo 폴더 생성
     + workspace/ch04-hooks/05-useMemo.html 참고해서 컴포넌트 생성
-- 🔊 [useCallback](./workspace-ins/ch04-hooks#usecallback)
-  + 💻 [06 useCallback(함수 자체를 memoize), React.memo(컴포넌트를 memoize)](./workspace-ins/ch04-hooks/06-useCallback)
-    + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/06-useCallback 폴더 생성
-    + workspace/ch04-hooks/06-useCallback.html 참고해서 컴포넌트 생성
 
+* 12장 앱 개발
+  * 12-1 Todo List
+    - 💻 [02 컨테이너 컴포넌트 추가](./workspace-ins/ch12-app/todolist/02-container)
+    
 #### 과제
 ```
 ## 과제: TodoList 작성 2
@@ -451,10 +461,31 @@
 <summary><h3>12일차(2025.12.11 목)</h3></summary>
 
 #### 오전(3시간)
+* 과제 풀이: 12장 앱 개발
+  * 12-1 Todo List
+    - 💻 [03 useRef, useReducer로 상태 관리](./workspace-ins/ch12-app/todolist/03-hooks)
 
+- 🔊 [useCallback](./workspace-ins/ch04-hooks#usecallback)
+  + 💻 [06 useCallback(함수 자체를 memoize), React.memo(컴포넌트를 memoize)](./workspace-ins/ch04-hooks/06-useCallback)
+    + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/06-useCallback 폴더 생성
+    + workspace/ch04-hooks/06-useCallback.html 참고해서 컴포넌트 생성
 
 #### 오후(3시간)
+- 🔊 [리액트 컴파일러](./workspace-ins/ch04-hooks#리액트-컴파일러)
+  + 💻 [07 React Compiler를 사용한 메모이제이션](./workspace-ins/ch04-hooks/07-useCallback-RC)
+    + workspace/ch04-hooks/06-useCallback 폴더 복사해서 workspace/ch04-hooks/07-useCallback-RC 폴더 생성
+* 🔊 [Custom Hook](./workspace-ins/ch04-hooks#custom-hook)
+  - 💻 [08 customHook - useCounter 커스텀 훅 사용](./workspace-ins/ch12-app/todolist/08-customCounter)
+    + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/08-customCounter 폴더 생성
 
+
+#### 과제
+```
+## 과제: TodoList 작성 3
+- workspace/ch12-app/todolist/04-memo 예제에 메모이제이션 추가
+  1. TodoItem 컴포넌트에서 React.memo를 사용해 불필요한 리렌더링 방지
+  2. TodoContainer 컴포넌트에서 useCallback을 사용해 addItem, toggleDone, deleteItem 함수를 메모이제이션
+```
 
 </details>
 
