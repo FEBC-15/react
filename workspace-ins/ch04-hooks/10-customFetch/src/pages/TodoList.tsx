@@ -5,7 +5,11 @@ function TodoList() {
 
   const { data, error, loading } = useFetch<TodoListRes>({ url: '/todolist' });
 
-  const list = data?.items.map(item => <li key={ item._id }>{ item.title }</li>);
+  const list = data?.items.map(item => (
+    <li key={ item._id }>
+      <a href={`/${item._id}`}>{ item.title }</a>
+    </li>
+  ));
 
   return (
     <>

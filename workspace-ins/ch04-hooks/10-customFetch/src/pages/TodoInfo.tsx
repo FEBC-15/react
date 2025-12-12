@@ -3,7 +3,9 @@ import type { TodoInfoRes } from "@/types/todo";
 
 function TodoInfo() {
 
-  const { data, error, loading } = useFetch<TodoInfoRes>({ url: '/todolist/1' });
+  const id = window.location.pathname.split('/').pop();
+
+  const { data, error, loading } = useFetch<TodoInfoRes>({ url: `/todolist/${id}` });
 
   return (
     <>
