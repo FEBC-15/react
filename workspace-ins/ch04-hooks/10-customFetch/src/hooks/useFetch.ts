@@ -1,4 +1,4 @@
-import type { ErrorRes, ResData, TodoListRes } from "@/types/todo";
+import type { ErrorRes, ResData, TodoInfoRes, TodoListRes } from "@/types/todo";
 import { useEffect, useState } from "react";
 
 const API_SERVER = 'https://fesp-api.koyeb.app/todo';
@@ -8,9 +8,9 @@ interface FetchParams {
   method?: 'GET' | 'POST';
 }
 
-function useFetch(fetchParams: FetchParams) {
+function useFetch<T extends TodoListRes | TodoInfoRes>(fetchParams: FetchParams) {
   // Todo 목록을 저장할 상태 (초기값: null)
-  const [ data, setData ] = useState<TodoListRes | null>(null);
+  const [ data, setData ] = useState<T | null>(null);
 
   // 에러 메시지를 저장할 상태 (초기값: null)
   const [ error, setError ] = useState<ErrorRes | null>(null);
@@ -26,7 +26,7 @@ function useFetch(fetchParams: FetchParams) {
       const res = await fetch(API_SERVER + params.url);
       console.log('res', res);
 
-      const jsonRes: ResData = await res.json();
+      const jsonRes: ResData<T> = await res.json();
       console.log('body', jsonRes);
 
       if(jsonRes.ok === 1){ // 타입 가드

@@ -1,8 +1,9 @@
 import useFetch from "@/hooks/useFetch";
+import type { TodoListRes } from "@/types/todo";
 
 function TodoList() {
 
-  const { data, error, loading } = useFetch({ url: '/todolist' });
+  const { data, error, loading } = useFetch<TodoListRes>({ url: '/todolist' });
 
   const list = data?.items.map(item => <li key={ item._id }>{ item.title }</li>);
 

@@ -20,6 +20,10 @@ export interface TodoInfoRes {
   item: Todo;
 }
 
+export interface TodoCreateRes {
+  ok: 1;
+}
+
 // 서버에서 에러를 응답할 경우
 export interface ErrorRes {
   ok: 0;
@@ -27,4 +31,4 @@ export interface ErrorRes {
 }
 
 // 서버의 응답
-export type ResData = TodoListRes | ErrorRes;
+export type ResData<T extends TodoListRes | TodoInfoRes> = T | ErrorRes;
