@@ -52,7 +52,7 @@
 - React 레포지토리 README: <https://github.com/FEBC-15/react>
   - [개발 환경 구축](./README.md#3-개발-환경-구축)
 
-- 🔊 [1장 리액트 빌드업](./workspace-ins/ch01-buildup)
+- 🔊 [1장 리액트 빌드업](./workspace-ins/ch01-buildup#1장-리액트-빌드업)
   - 🔊 [1. 웹 개발의 변천사](./workspace-ins/ch01-buildup#1-웹-개발의-변천사)
 
 - 01 전통적인 방식의 Todo List 테스트(서버에서 완성된 HTML 응답) 
@@ -241,7 +241,7 @@
 <summary><h3>5일차(2025.12.02 화)</h3></summary>
 
 #### 오전(3시간)
-* 🔊 [2장 React 시작하기](./workspace-ins/ch02-start)
+* 🔊 [2장 React 시작하기](./workspace-ins/ch02-start#2장-react-시작하기)
   - 🔊 [1. React란?](./workspace-ins/ch02-start#1-react란)
   * Hello React
     - 💻 [01 Hello HTML](./workspace-ins/ch02-start/hello/01.html)
@@ -264,15 +264,6 @@
     ```
 
 * 🔊 [4. JSX](./workspace-ins/ch02-start#4-jsx)
-* 🔊 [5. 속성 (Props)](./workspace-ins/ch02-start#5-속성-props)
-
-  * 2-3 Props
-    - 💻 [10 Button 컴포넌트에 Props 전달](./workspace-ins/ch02-start/props/10)
-      + workspace/ch02-start/props 폴더에서 다음 명령 실행
-      ```sh
-      npm create vite@latest 10 -- --template react-ts
-      ```
-      + workspace/ch01-buildup/react/02/index.html에서 컴포넌트 복사
 
 </details>
 
@@ -304,7 +295,7 @@
   - 💻 [13 상태관리 대상이 객체일 경우 주의 사항](./workspace-ins/ch02-start/state/13)
     + workspace/ch02-start/state 폴더에서 vite 프로젝트 생성(13)
     + workspace/ch02-start/state/13.html 참고해서 컴포넌트 생성
-
+    
 </details>
 
 <details>
@@ -376,7 +367,7 @@
 <summary><h3>9일차(2025.12.08 월)</h3></summary>
 
 #### 오전(3시간)
-* 🔊 [3장 클래스 컴포넌트와 컴포넌트의 라이프 사이클](./workspace-ins/ch03-class)
+* 🔊 [3장 클래스 컴포넌트와 컴포넌트의 라이프 사이클](./workspace-ins/ch03-class#3장-클래스-컴포넌트와-컴포넌트의-라이프-사이클)
   - 💻 [01 클래스 컴포넌트](./workspace-ins/ch03-class/01-classbase)
     + workspace/vite-template 폴더 복사해서 workspace/ch03-class/01-classbase 폴더 생성
     + workspace/ch03-class/01-classbase.html 참고해서 컴포넌트 생성
@@ -396,13 +387,13 @@
 
 #### 오전(3시간)
 * 🔊 [4장 리액트 훅](./workspace-ins/ch04-hooks#4장-리액트-훅)
-  - 🔊 [useState](./workspace-ins/ch04-hooks#usestate)
+  - 🔊 [useState](./workspace-ins/ch04-hooks#11-usestate)
     + 💻 [01 useState - 상태 관리](./workspace-ins/ch04-hooks/01-useState)
       + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/01-useState 폴더 생성
       + workspace/ch04-hooks/01-useState.html 참고해서 컴포넌트 생성
 
 #### 오후(3시간)
-- 🔊 [useEffect](./workspace-ins/ch04-hooks#useeffect)
+- 🔊 [useEffect](./workspace-ins/ch04-hooks#12-useeffect)
   + 💻 [02 useEffect - side effect 관리](./workspace-ins/ch04-hooks/02-useEffect)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/02-useEffect 폴더 생성
 
@@ -422,15 +413,15 @@
 <summary><h3>11일차(2025.12.10 수)</h3></summary>
 
 #### 오전(3시간)
-- 🔊 [useReducer](./workspace-ins/ch04-hooks#usereducer)
+- 🔊 [useReducer](./workspace-ins/ch04-hooks#13-usereducer)
   + 💻 [03 useReducer - 상태 관리 로직을 한곳에](./workspace-ins/ch04-hooks/03-useReducer)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/03-useReducer 폴더 생성
-- 🔊 [useRef](./workspace-ins/ch04-hooks#useref)
+- 🔊 [useRef](./workspace-ins/ch04-hooks#14-useref)
   + 💻 [04 useRef - 값이 유지되는 데이터 관리, DOM 엘리먼트 참조](./workspace-ins/ch04-hooks/04-useRef)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/04-useRef 폴더 생성
 
 #### 오후(3시간 30분)
-- 🔊 [useMemo](./workspace-ins/ch04-hooks#usememo)
+- 🔊 [useMemo](./workspace-ins/ch04-hooks#15-usememo)
   + 💻 [05 useMemo - 함수의 반환값을 memoize](./workspace-ins/ch04-hooks/05-useMemo)
     + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/05-useMemo 폴더 생성
     + workspace/ch04-hooks/05-useMemo.html 참고해서 컴포넌트 생성
@@ -465,19 +456,18 @@
   * 12-1 Todo List
     - 💻 [03 useRef, useReducer로 상태 관리](./workspace-ins/ch12-app/todolist/03-hooks)
 
-- 🔊 [useCallback](./workspace-ins/ch04-hooks#usecallback)
+- 🔊 [useCallback](./workspace-ins/ch04-hooks#16-usecallback)
   + 💻 [06 useCallback(함수 자체를 memoize), React.memo(컴포넌트를 memoize)](./workspace-ins/ch04-hooks/06-useCallback)
     + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/06-useCallback 폴더 생성
     + workspace/ch04-hooks/06-useCallback.html 참고해서 컴포넌트 생성
 
 #### 오후(3시간)
-- 🔊 [리액트 컴파일러](./workspace-ins/ch04-hooks#리액트-컴파일러)
+- 🔊 [리액트 컴파일러](./workspace-ins/ch04-hooks#2-리액트-컴파일러)
   + 💻 [07 React Compiler를 사용한 메모이제이션](./workspace-ins/ch04-hooks/07-useCallback-RC)
     + workspace/ch04-hooks/06-useCallback 폴더 복사해서 workspace/ch04-hooks/07-useCallback-RC 폴더 생성
-* 🔊 [Custom Hook](./workspace-ins/ch04-hooks#custom-hook)
-  - 💻 [08 customHook - useCounter 커스텀 훅 사용](./workspace-ins/ch12-app/todolist/08-customCounter)
+* 🔊 [Custom Hook](./workspace-ins/ch04-hooks#17-custom-hook)
+  - 💻 [08 customHook - useCounter 커스텀 훅 사용](./workspace-ins/ch04-hooks/08-customCounter)
     + workspace/ch04-hooks/01-useState 폴더 복사해서 workspace/ch04-hooks/08-customCounter 폴더 생성
-
 
 #### 과제
 ```
@@ -493,10 +483,19 @@
 <summary><h3>13일차(2025.12.12 금)</h3></summary>
 
 #### 오전(3시간)
+* 과제 풀이: 12장 앱 개발
+  * 12-1 Todo List  
+    - 💻 [04 React.memo, useCallback으로 메모이제이션](./workspace-ins/ch12-app/todolist/04-memo)
 
+- 🔊 [Custom Hook](./workspace-ins/ch04-hooks#17-custom-hook)
+  - 💻 [09 customHook - 커스텀 훅 없이 fetch API 사용](./workspace-ins/ch04-hooks/09-fetch)
+    + workspace/vite-template 폴더 복사해서 workspace/ch04-hooks/09-fetch 폴더 생성
+    + workspace/ch04-hooks/09-fetch.html 참고해서 컴포넌트 생성
 
 #### 오후(3시간)
-
+  - 💻 [10 customHook - useFatch, useAxios 커스텀 훅 사용](./workspace-ins/ch04-hooks/10-customFetch)
+    + workspace/ch04-hooks/09-fetch 폴더 복사해서 workspace/ch04-hooks/10-customFetch 폴더 생성
+    + workspace/ch04-hooks/10-customFetch 참고해서 컴포넌트 생성
 
 </details>
 
