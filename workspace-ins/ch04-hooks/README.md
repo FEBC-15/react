@@ -384,7 +384,7 @@ const value = use(resource);
 #### 매개변수
 * `resource`: Promise 또는 Context 객체
   - Context인 경우: Context의 현재 값을 반환
-  - Promise인 경우: 해당 Promise가 완료될 때까지 컴포넌트를 중단(suspend)
+  - Promise인 경우: Promise가 완료될 때까지 컴포넌트를 일시 중단(suspend)하고, Suspense 경계에서 로딩 UI를 표시
 
 #### 리턴값
 * Promise의 결과값 또는 Context의 값
@@ -421,11 +421,38 @@ function Left3({ showCounter = true }) {
 * 이 패턴은 주로 서버 컴포넌트에서 Promise를 반환하고, 클라이언트 컴포넌트에서 서버 함수의 비동기 결과를 자연스럽게 읽는 용도로 사용함
 * 클라이언트 컴포넌트에서 직접 Promise를 만들어 use에 전달하는 것은 일반적으로 권장되지 않으며, 이 경우 기존의 useEffect와 useState 패턴을 사용하는 것이 더 적합함
 
+#### 예시
+* Promise를 읽는 경우
+```tsx
+import { use } from 'react';
+
+function UserProfile({ userPromise }) {
+  const user = use(userPromise);
+  
+  return (
+    <div>
+      <h2>{user.name}</h2>
+      <p>{user.email}</p>
+    </div>
+  );
+}
+
+function App() {
+  const userPromise = fetchUser();
+  
+  return (
+    <Suspense fallback={<div>로딩 중...</div>}>
+      <UserProfile userPromise={userPromise} />
+    </Suspense>
+  );
+}
+```
+
 ## 3.2 useFormStatus
 
 * 상위 form 요소의 상태 정보를 제공하는 훅
 * 폼이 제출 중인지, 어떤 데이터가 제출되었는지 등을 확인
-* 자식 컴포넌트에서 부모 폼의 상태에 접근할 때 유용
+* form의 자식 컴포넌트에서만 사용 가능하며, 부모 폼의 상태에 접근할 때 유용
 
 ### API
 ```tsx
@@ -479,7 +506,7 @@ const [state, formAction, isPending] = useActionState(action, initialState, perm
 ```
 
 #### 매개변수
-* `action`: 폼이 제출되거나 버튼이 클릭될 때 호출될 함수
+* `action`: 폼이 제출될 때 호출될 함수. `(previousState, formData) => Promise<newState>` 형태
 * `initialState`: 초기 상태값
 * `permalink` (선택): SEO를 위한 고유 페이지 URL
 
@@ -520,12 +547,14 @@ function UserForm() {
 ### useFormStatus와 useActionState 차이점
 
 #### useFormStatus
-* 폼의 입력값, 에러 메시지 등 폼 내부 상태를 직접 관리할 때 주로 사용
-* setState로 상태를 직접 변경하며, 주로 클라이언트 컴포넌트에서 활용
-* 비동기 처리나 폼 제출 결과 관리가 필요할 때는 별도의 로직이 필요
+* form의 자식 컴포넌트에서만 사용 가능한 훅
+* 폼 제출 상태(pending, data 등)를 읽기만 할 수 있음
+* 자식 컴포넌트에서 부모 폼의 제출 상태를 확인할 때 사용
+* 폼 제출 결과나 상태 변경은 직접 관리할 수 없음
 
 #### useActionState
-* 폼 제출 등 액션의 결과와 pending 상태를 함께 관리할 수 있는 훅
+* form 컴포넌트 자체에서 사용하는 훅
+* 폼 제출 액션의 결과와 pending 상태를 함께 관리
 * formAction에 액션 함수를 전달하여 서버 액션과 쉽게 연동
 * isPending 값으로 비동기 처리 상태를 간편하게 확인 가능
 * 서버 컴포넌트와 클라이언트 컴포넌트 모두에서 사용할 수 있으며, 폼 제출 후 결과 메시지, 서버 응답 등 액션 중심의 폼 처리에 적합
@@ -555,8 +584,8 @@ function TodoList() {
   const axios = useAxiosInstance();
   
   const fetchList = async () => {
-    // API 서버에 목록 조회 요청
-    ...
+    const response = await axios.get('/todolist');
+    setData(response.data);
   }
 
   const [data, setData] = useState<TodoList | null>(null);
@@ -564,14 +593,17 @@ function TodoList() {
     data,
     (data, action: {_id: number, newImportant: boolean}) => data ? {
         ...data,
-        items: data.items.map(item => item._id !== action._id ? item : { ...item, important: action.newImportant })
+        items: data.items.map(item => 
+          item._id !== action._id ? item : { ...item, important: action.newImportant }
+        )
       } : data
   );
 
   // 중요도 버튼 클릭(토글)
   const handleToggleImportant = async (_id: number) => {
     try {
-      const newImportant = !data?.items.find(item => item._id === _id)?.important;
+      const currentItem = data?.items.find(item => item._id === _id);
+      const newImportant = !currentItem?.important;
 
       // 즉시 UI 업데이트 (낙관적)
       setOptimisticData({_id, newImportant});
@@ -581,27 +613,42 @@ function TodoList() {
       });
 
       // 성공시 원본 상태 업데이트
-      fetchList();
+      await fetchList();
     } catch(err) {
       console.error(err);
+      // 에러 발생 시 자동으로 원본 상태로 롤백됨
     }
   };
-  ...
+  
+  return (
+    <div>
+      {optimisticData?.items.map(item => (
+        <div key={item._id}>
+          <span>{item.title}</span>
+          <button onClick={() => handleToggleImportant(item._id)}>
+            {item.important ? '중요' : '일반'}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
 }
 ```
 
 ### 실제 사용 시 주의사항 및 동작 흐름
 
 * 낙관적 업데이트 후 서버 응답 데이터로 원본 상태를 반드시 갱신해야 함
-  - 서버 patch 성공 시, 서버에서 받은 최신 데이터로 원본 상태(state)를 업데이트해야 함
+  - 서버 요청 성공 시, 서버에서 받은 최신 데이터로 원본 상태(state)를 업데이트해야 함
   - 그렇지 않으면, useOptimistic이 원본 상태로 리셋되면서 UI가 다시 이전 값으로 돌아감
 * 에러가 발생하면 자동으로 롤백됨
   - 서버 요청이 실패하면 원본 상태는 바뀌지 않으므로, 낙관적 UI가 자동으로 원래대로 돌아감
+* 낙관적 업데이트는 사용자 경험을 향상시키지만, 서버와의 동기화가 중요함
 
 ## 3.5 새로운 훅들의 특징
 
 * 서버 컴포넌트 지원: 리액트 19의 새로운 훅들은 서버 컴포넌트와 함께 작동하도록 설계됨
 * 향상된 폼 처리: `useActionState`와 `useFormStatus`는 폼 제출과 상태 관리를 크게 개선
 * 더 나은 UX: `useOptimistic`은 즉각적인 피드백으로 사용자 경험을 향상
-* 조건부 사용: `use` 훅은 조건부로 사용할 수 있어 더 유연한 데이터 로딩 가능
+* 조건부 사용: `use` 훅은 조건문 안에서도 사용할 수 있어 더 유연한 데이터 로딩 가능
+* Suspense 통합: `use` 훅은 Suspense와 자연스럽게 연동되어 비동기 데이터 처리를 간소화
 
