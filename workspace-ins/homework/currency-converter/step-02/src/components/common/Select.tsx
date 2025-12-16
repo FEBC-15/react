@@ -36,13 +36,13 @@ interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
 function Select({ label, id, options, ...props }: SelectProps) {
   return (
     <>
-      <label htmlFor="from">From</label>
+      <label htmlFor={id}>{label}</label>
 
-      <select id="from">
-        <option value="KRW">KRW</option>
-        <option value="USD">USD</option>
-        <option value="EUR">EUR</option>
-        <option value="JPY">JPY</option>
+      <select id={id} {...props}>
+        { 
+          options.map(option => 
+            <option key={option.value} value={option.value}>{option.label}</option>) 
+        }
       </select>
     </>
   );

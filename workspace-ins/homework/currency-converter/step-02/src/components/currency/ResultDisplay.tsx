@@ -16,7 +16,7 @@ interface ResultDisplayProps {
  * @returns JSX.Element
  */
 function ResultDisplay({ result }: ResultDisplayProps) {
-  return <div className="result" id="result">결과: 1000 KRW = 0.76 USD</div>;
+  return <div className="result" id="result">결과: {result || '???'}</div>;
 }
 
 export default ResultDisplay;

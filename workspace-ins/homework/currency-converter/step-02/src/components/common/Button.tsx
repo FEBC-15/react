@@ -19,7 +19,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
  * @returns JSX.Element
  */
 function Button({ children, ...props }: ButtonProps) {
-  return <button id="swap" type="button" onClick={() => {}}>변환</button>;
+  return <button {...props}>{children}</button>;
 }
 
 export default Button;

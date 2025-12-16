@@ -23,8 +23,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 function Input({ label, id, ...props }: InputProps) {
   return (
     <>
-      <label htmlFor="amount">금액</label>
-      <input id="amount" type="number" step="1" value="100" />
+      <label htmlFor={id}>{label}</label>
+      <input id={id} {...props} />
     </>
   );
 }

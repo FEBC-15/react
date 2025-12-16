@@ -3,6 +3,8 @@ import Input from './components/common/Input';
 import Button from './components/common/Button';
 import CurrencyRow from './components/currency/CurrencyRow';
 import ResultDisplay from './components/currency/ResultDisplay';
+import { useState } from 'react';
+import type { Currency } from '@/types';
 
 /**
  * 환율 계산기 메인 컴포넌트
@@ -17,18 +19,23 @@ import ResultDisplay from './components/currency/ResultDisplay';
  */
 function App() {
   
+  const [amount, setAmount] = useState('100');
+  const [from, setFrom] = useState<Currency>('USD');
+  const [to, setTo] = useState<Currency>('KRW');
+  const [result, setResult] = useState(null);
+
   return (
     <>
       <div className="card">
         <h2>환율 계산기 - step 02</h2>
 
-        <Input id="amount" label="금액" type="number" step="1" value="100" onChange={() => {}} />
+        <Input id="amount" label="액수" type="number" step="1" value={amount} onChange={(e) => setAmount(e.target.value)} />
 
         <CurrencyRow
-          from="USD"
-          to="KRW"
-          onFromChange={() => {}}
-          onToChange={() => {}}
+          from={from}
+          to={to}
+          onFromChange={(e) => setFrom(e.target.value as Currency)}
+          onToChange={(e) => setTo(e.target.value as Currency)}
         />
 
         <div className="row" style={{ marginTop: '12px' }}>
@@ -36,7 +43,7 @@ function App() {
           <Button id="swap" type="button" onClick={() => {}}>↺ 교차</Button>
         </div>
 
-        <ResultDisplay result="100 USD = 100000 KRW" />
+        <ResultDisplay result={result} />
       </div>
     </>
   );
