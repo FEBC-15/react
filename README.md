@@ -497,6 +497,15 @@
     + workspace/ch04-hooks/09-fetch 폴더 복사해서 workspace/ch04-hooks/10-customFetch 폴더 생성
     + workspace/ch04-hooks/10-customFetch 참고해서 컴포넌트 생성
 
+#### 과제
+```
+## 주말 과제: 환율 변환기 앱 개발 step-02
+- 과제 폴더 복사
+  - sample/homework/currency-converter/step-02 폴더를 workspace/homework/currency-converter 폴더에 복사(workspace/homework/currency-converter/step-02)
+- 기능 구현
+  - step-02에 미리 만들어져 있는 컴포넌트를 완성해서 환율 변환기 기능 구현
+```
+
 </details>
 
 </details>

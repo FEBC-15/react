@@ -1,0 +1,17 @@
+.todoapp {
+  background-color: beige;
+}
+
+.menu {
+  background-color: beige;
+}
+
+.menu-dark {
+  background-color: gray;
+}
+
+.input-error {
+  font-size: 12px;
+  color: red;
+  font-weight: bold;
+}
