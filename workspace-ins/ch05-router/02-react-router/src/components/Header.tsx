@@ -1,15 +1,15 @@
-import { Link } from "react-router";
+import { NavLink } from "react-router";
 
 function Header() {
   return (
     <>
       <header>
         <h1>리액트 라우터 - 02 react-router 사용</h1>
-        <Link className="menu-dark" to="/home">home</Link>
+        <NavLink className={({ isActive }) => isActive ? 'menu-dark' : 'memu'} to="/home">home</NavLink>
         <br/>
-        <Link className="menu" to="/page1">page1</Link>
+        <NavLink className={({ isActive }) => isActive ? 'menu-dark' : 'memu'} to="/page1">page1</NavLink>
         <br/>
-        <Link className="menu" to="/page2">page2</Link>
+        <NavLink className={({ isActive }) => isActive ? 'menu-dark' : 'memu'} to="/page2">page2</NavLink>
       </header>
     </>
   )
