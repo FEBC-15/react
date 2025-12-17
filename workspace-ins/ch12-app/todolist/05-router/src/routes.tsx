@@ -2,6 +2,7 @@ import Layout from "@/components/Layout";
 import About from "@/pages/About";
 import ErrorPage from "@/pages/ErrorPage";
 import Home from "@/pages/Home";
+import NotFound from "@/pages/NotFound";
 import TodoAdd from "@/pages/TodoAdd";
 import TodoEdit from "@/pages/TodoEdit";
 import TodoInfo from "@/pages/TodoInfo";
@@ -30,6 +31,9 @@ const router = createBrowserRouter([
       },
     ]
   },
+
+  { path: '*', element: <NotFound /> } // catch-all 라우트: 위의 라우트와 일치하지 않은 모든 URL
+
 ]);
 
 export default router;
