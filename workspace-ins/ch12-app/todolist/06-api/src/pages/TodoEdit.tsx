@@ -1,6 +1,6 @@
 import type { Todo } from "@/types/todo";
 import { useState } from "react";
-import { useNavigate, useOutletContext, useParams } from "react-router";
+import { Form, useNavigate, useOutletContext, useParams } from "react-router";
 
 interface OutletContextProps {
   item: Todo;
@@ -14,6 +14,7 @@ function TodoEdit() {
 
   // 중첩 라우팅에서 부모가 Outlet 컴포넌트의 context 속성으로 전달한 값을 자식 컴포넌트에서 꺼냄
   const { item } = useOutletContext<OutletContextProps>();
+  console.log('item', item)
 
   const [ title, setTitle ] = useState(item.title);
   const [ content, setContent ] = useState(item.content);
@@ -23,19 +24,19 @@ function TodoEdit() {
     <>
       <h2>할일 수정</h2>
       <div className="todo">
-        <form>
+        <Form method='patch'>
           <label htmlFor="title">제목 :</label>
-          <input type="text" id="title" value={ title } onChange={ (e) => setTitle(e.target.value) } autoFocus />
+          <input type="text" id="title" name="title" value={ title } onChange={ (e) => setTitle(e.target.value) } autoFocus />
           <br />
           <label htmlFor="content">내용 :</label>
-          <textarea id="content" cols={23} rows={5} value={ content } onChange={ (e) => setContent(e.target.value) }></textarea>
+          <textarea id="content" name="content" cols={23} rows={5} value={ content } onChange={ (e) => setContent(e.target.value) }></textarea>
           <br />
           <label htmlFor="done">완료 :</label>
-          <input type="checkbox" id="done" checked={ done } onChange={ (e) => setDone(e.target.checked) } />
+          <input type="checkbox" id="done" name="done" checked={ done } onChange={ (e) => setDone(e.target.checked) } />
           <br />
-          <button type="button" onClick={ () => navigate(-1) }>저장</button>
+          <button type="submit">수정</button>
           <button type="reset" onClick={ () => navigate(`/todo/list/${_id}`, {state:{from:'edit', message:'수정 취소'}})}>취소</button>
-        </form>
+        </Form>
       </div>
     </>
   );
