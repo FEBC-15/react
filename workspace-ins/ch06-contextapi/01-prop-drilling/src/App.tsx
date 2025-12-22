@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Left1 from '@/components/Left1';
 import Right1 from '@/components/Right1';
 import './App.css';
+import { CounterProvider } from '@/contexts/CounterContext';
 
 function App() {
 
@@ -23,8 +24,11 @@ function App() {
       <div id="container">
         <h1>App</h1>
         <div id="grid">
-          <Left1 count={ count } /> {/* props로 count 전달 */}
-          <Right1 countUp={ countUp } /> {/* props로 countUp 전달 */}
+          {/* 자식 컴포넌트에 Context 제공 */}
+          <CounterProvider>
+            <Left1 count={ count } /> {/* props로 count 전달 */}
+            <Right1 countUp={ countUp } /> {/* props로 countUp 전달 */}
+          </CounterProvider>
         </div>
       </div>
     </>
