@@ -1,0 +1,32 @@
+/* Button 컴포넌트 스타일 */
+.button {
+  background-color: gray;
+  border: none;
+  color: black;
+  padding: 6px 18px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+/* 파란 배경의 빨간 글자 */
+.bg-blue-text-red{
+  background-color: blue;
+  color: red;
+}
+
+/* 노란 배경의 빨간 글자 */
+.bg-yellow-text-red{
+  background-color: yellow;
+  color: red;
+}
+
+/* 회색 배경의 파란 글자 */
+.bg-gray-text-blue{
+  background-color: lightgray;
+  color: darkblue;
+}
