@@ -1,4 +1,5 @@
 import CounterContext from '@/contexts/CounterContext';
+import ThemeContext from '@/contexts/ThemeContext';
 import { use, useEffect } from 'react';
 
 function Left3() {
@@ -10,15 +11,15 @@ function Left3() {
   const { count } = use(CounterContext); // React 19에 추가
 
   // TODO 4. ThemeContext 사용하기(theme)
+  const { theme } = use(ThemeContext);
 
   return (
     <div>
       {/* 라이트 모드에서는 숫자를, 다크 모드에서는 숫자만큼 별을 보여줌 */}
-      {/* <h3>Left3</h3> */}
-      {/* <span>{ count }</span> */}
 
-      <h3>Left3 {' - 💫'}</h3>
-      <span>{ new Array(count).fill('💫') }</span>
+      <h3>Left3 { theme === 'dark' && ' - 💫' }</h3>
+      <span>{ theme === 'light' ? count : new Array(count).fill('💫') }</span>
+
     </div>
   );
 }

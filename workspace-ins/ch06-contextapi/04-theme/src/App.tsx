@@ -4,6 +4,7 @@ import Right1 from '@/components/Right1';
 import './App.css';
 import { CounterProvider } from '@/contexts/CounterContext';
 import ThemeToggle from '@components/ThemeToggle';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 
 function App() {
 
@@ -13,17 +14,19 @@ function App() {
 
   return (
     <>
-      <h1>04 Context API - 테마 변경 <ThemeToggle /></h1>
-      <div id="container">
-        <h1>App</h1>
-        <div id="grid">
-          {/* TODO 3. ThemeProvider 추가 */}
-          <CounterProvider>
-            <Left1 />
-            <Right1 />
-          </CounterProvider>
+      <ThemeProvider>
+        <h1>04 Context API - 테마 변경 <ThemeToggle /></h1>
+        <div id="container">
+          <h1>App</h1>
+          <div id="grid">
+            {/* TODO 3. ThemeProvider 추가 */}
+            <CounterProvider>
+              <Left1 />
+              <Right1 />
+            </CounterProvider>
+          </div>
         </div>
-      </div>
+      </ThemeProvider>
     </>
   );
 }
