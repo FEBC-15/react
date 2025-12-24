@@ -1,11 +1,13 @@
+import './Button.css';
+
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  children: string;
   color?: string;
+  bg?: string;
 }
 
-function Button({ children, type='button', color, ...rest }: ButtonProps){
+function Button({ children, type='button', color, bg, ...rest }: ButtonProps){
   return (
-    <button type={ type } className="rounded-button" style={{ backgroundColor: color }} { ...rest } >{ children }</button>
+    <button type={ type } className={`button bg-${bg}-text-${color}`} { ...rest } >{ children }</button>
   );
 }
 

@@ -2,7 +2,7 @@ function Login() {
   return (
     <div className="container">
       <h2>Login</h2>
-      <form className="form login">
+      <form className="form">
         <div className="input-group">
           <label htmlFor="email">Email:</label>
           <input type="email" id="email" className="input" autoComplete="email" required />
