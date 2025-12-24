@@ -7,7 +7,7 @@ import { createSlice } from "@reduxjs/toolkit";
 // reducer: Reducer
 const counterSlice = createSlice({
   // ActionCreator, Reducer를 정의
-  name: 'myCounter', // 슬라이스 이름(액션 타입의 접두사로 사용됨)
+  name: 'myCounter', // 슬라이스 이름(액션 타입의 접두사로 사용됨), myCounter/countUp
   initialState: { count: 5 }, // 초기 상태값
   reducers: {
     countUp: (state, action) => {
@@ -27,6 +27,6 @@ console.log('counterSlice', counterSlice);
 // {type: 'myCounter/countUp', payload: 1}
 console.log('countUp action', counterSlice.actions.countUp(1));
 
-export const { countUp, countDown, countReset } = counterSlice.actions;
+export const { countUp, countDown, countReset } = counterSlice.actions; // ActionCreator
 
 export default counterSlice;
