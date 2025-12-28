@@ -675,10 +675,33 @@
 <summary><h3>20일차(2025.12.24 수)</h3></summary>
 
 #### 오전(3시간)
-
+  * 🔊 [2. Redux](./workspace-ins/ch07-globalstate#2-redux)
+    - 💻 [02 Redux Toolkit](./workspace-ins/ch07-globalstate/02-redux-toolkit)
+  * 🔊 [3. Jotai](./workspace-ins/ch07-globalstate#3-jotai)
+    - 💻 [02 Jotai](./workspace-ins/ch07-globalstate/02-jotai)
 
 #### 오후(3시간)
+  * 🔊 [4. Zustand](./workspace-ins/ch07-globalstate#4-zustand)
+    - 💻 [03 Zustand](./workspace-ins/ch07-globalstate/03-zustand)
 
+* 🔊 [8장 리액트에서 CSS 사용](./workspace-ins/ch08-css#8장-리액트에서-css-사용)
+  * 🔊 [1 기본 CSS 적용 방법](./workspace-ins/ch08-css#1-기본-css-적용-방법)
+    - 💻 [01 바닐라 CSS](./workspace-ins/ch08-css/01-css)
+  * 🔊 [2 CSS 모듈](./workspace-ins/ch08-css#2-css-모듈)
+    - 💻 [02 CSS Module](./workspace-ins/ch08-css/02-module)
+  * 🔊 [3 CSS-in-JS](./workspace-ins/ch08-css#3-css-in-js)
+    - 💻 [03 Styled Components](./workspace-ins/ch08-css/03-styled)
+  * 🔊 [4 Tailwind CSS](./workspace-ins/ch08-css#4-tailwind-css)
+    - 💻 [04 Tailwind CSS](./workspace-ins/ch08-css/04-tailwind)
+
+#### 과제
+```
+## Todo List에 스타일 적용
+- sample/homework/todolist-cssmodule 폴더와 todolist-tailwind 폴더를 workspace/homework 하위로 복사
+  - todolist-cssmodule, todolist-tailwind 폴더는 workspace/ch12-app/todolist/06-api까지 작성된 코드입니다.
+- workspace/homework/todolist-cssmodule: CSS 모듈을 이용해서 스타일 적용
+- workspace/homework/todolist-tailwind: Tailwind CSS를 이용해서 스타일 적용
+```
 
 </details>
 
