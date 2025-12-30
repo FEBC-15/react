@@ -1,3 +1,4 @@
+import CommentNew from "@/pages/board/CommentNew";
 import { useEffect } from "react";
 
 function CommentList() {
@@ -21,7 +22,14 @@ function CommentList() {
         에러가 발생하면 <p>{ error.message }</p> 표시
         데이터가 있으면 <ul> <li>댓글 내용 1</li><li>댓글 내용 2</li>... </ul> 표시 
       */}
-      
+      <h3>댓글 목록</h3>
+      <ul>
+        <li>3번 댓글</li>
+        <li>2번 댓글</li>
+        <li>1번 댓글</li>
+      </ul>
+
+      <CommentNew />
     </>
   );
 }
