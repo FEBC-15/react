@@ -39,10 +39,21 @@ export interface BoardReplyCreateRes {
   item: BoardReply;
 }
 
+// 데이터 검증 오류 타입
+interface FieldError {
+  type: string;
+  value: string;
+  msg: string;
+  location: string;
+}
+
 // 서버에서 에러를 응답할 경우
 export interface ErrorRes {
   ok: 0;
   message: string;
+  errors?: {
+    [field: string]: FieldError;
+  }
 }
 
 // 서버의 응답

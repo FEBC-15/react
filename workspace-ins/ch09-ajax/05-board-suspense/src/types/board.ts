@@ -14,7 +14,7 @@ export type BoardList = Omit<BoardInfo, 'content'>;
 // 게시물 목록 조회 결과 타입
 export interface BoardListRes {
   ok: 1;
-  items: BoardList[];
+  item: BoardList[];
 }
 
 // 게시물 상세 조회 결과 타입

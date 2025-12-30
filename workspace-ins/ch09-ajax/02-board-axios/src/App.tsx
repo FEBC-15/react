@@ -2,7 +2,10 @@ import BoardInfo from "@/pages/board/BoardInfo";
 
 function App() {
   return (
-    <BoardInfo />
+    <>
+      <h1>02 Axios 라이브러리</h1>
+      <BoardInfo />
+    </>
   );  
 }
 

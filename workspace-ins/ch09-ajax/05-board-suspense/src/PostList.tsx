@@ -1,26 +1,21 @@
 import axios from "axios";
-import FetchThenRender from "@/FetchThenRender";
-import FetchOnRender from "@/FetchOnRender";
 import { useEffect, useState } from "react";
-import type { BoardListRes } from "@/types/board";
+import type { BoardList, BoardListRes } from "@/types/board";
 
 // 게시물 목록 조회
 function fetchList(){
-  return axios.get('https://fesp-api.koyeb.app/market/posts?type=qna&delay=4000', {
+  return axios.get<BoardListRes>('https://fesp-api.koyeb.app/market/posts?type=qna&delay=4000', {
     headers: {
       'client-id': 'openmarket',
     },
-  });
+  }).then(res => res.data.item);
 }
 
 function PostList(){
-  // TODO: 게시물 건수 조회
-  const [data, setData] = useState<BoardListRes[]>();
+  const [data, setData] = useState<BoardList[]>();
 
   useEffect(() => {
-    fetchList().then(res => {
-      setData(res.data.item);
-    });
+    fetchList().then(setData);
   }, []);
 
   if(!data){

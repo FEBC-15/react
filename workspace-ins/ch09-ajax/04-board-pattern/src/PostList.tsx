@@ -1,19 +1,13 @@
-import axios from "axios";
-import FetchThenRender from "@/FetchThenRender";
 import FetchOnRender from "@/FetchOnRender";
+import FetchThenRender from "@/FetchThenRender";
 
-// 게시물 목록 조회
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// 게시물 목록 조회 API 호출
 function fetchList(){
-  return axios.get('https://fesp-api.koyeb.app/market/posts?type=qna&delay=4000', {
-    headers: {
-      'client-id': 'openmarket',
-    },
-  });
+  
 }
 
 function PostList(){
-  // TODO: 게시물 건수 조회
+  // TODO: 게시물 목록 조회
 
   return (
     <>

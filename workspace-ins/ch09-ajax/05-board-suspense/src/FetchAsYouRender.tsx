@@ -1,4 +1,4 @@
-import type { BoardInfoRes, BoardReplyListRes } from "@/types/board";
+import type { BoardInfo, BoardInfoRes, BoardReply, BoardReplyListRes } from "@/types/board";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -8,7 +8,7 @@ function fetchPost() {
     headers: {
       'client-id': 'openmarket'
     }
-  });
+  }).then(res => res.data.item);
 }
 
 // 댓글 목록 조회 API 호출
@@ -17,17 +17,15 @@ function fetchComments() {
     headers: {
       'client-id': 'openmarket'
     }
-  });
+  }).then(res => res.data.item);
 }
 
 // 게시글 상세 조회 화면
 function FetchAsYouRender() {
-  const [data, setData] = useState<BoardInfoRes>();
+  const [data, setData] = useState<BoardInfo>();
 
   useEffect(() => {
-    fetchPost().then(res => {
-      setData(res.data);
-    });
+    fetchPost().then(setData);
   }, []);
 
   if(!data){
@@ -36,7 +34,7 @@ function FetchAsYouRender() {
 
   return (
     <>
-      <h4>{data.item.title}</h4>
+      <h4>{data.title}</h4>
       <Comments />
     </>
   );
@@ -44,19 +42,17 @@ function FetchAsYouRender() {
 
 // 댓글 목록 조회 화면
 export function Comments() {
-  const [data, setData] = useState<BoardReplyListRes>();
+  const [data, setData] = useState<BoardReply[]>();
 
   useEffect(() => {
-    fetchComments().then((res) => {
-      setData(res.data);
-    });
+    fetchComments().then(setData);
   }, []);
 
   if(!data){
     return <div>댓글 로딩중...</div>;
   }
 
-  const list = data?.item.map((item) => <li key={item._id}>{item.content}</li>);
+  const list = data.map((item) => <li key={item._id}>{item.content}</li>);
 
   return (
     <>
