@@ -66,7 +66,7 @@ function CommentList() {
         </ul>
       </> }
 
-      <CommentNew />
+      <CommentNew reload={requestCommentList}/>
     </>
   );
 }
