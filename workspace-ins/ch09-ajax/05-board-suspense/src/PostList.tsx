@@ -1,6 +1,7 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
-import type { BoardList, BoardListRes } from "@/types/board";
+import { Suspense, use } from "react";
+import type { BoardListRes } from "@/types/board";
+import FetchAsYouRender from "@/FetchAsYouRender";
 
 // 게시물 목록 조회
 function fetchList(){
@@ -11,20 +12,17 @@ function fetchList(){
   }).then(res => res.data.item);
 }
 
+const listPromise = fetchList();
+
 function PostList(){
-  const [data, setData] = useState<BoardList[]>();
-
-  useEffect(() => {
-    fetchList().then(setData);
-  }, []);
-
-  if(!data){
-    return <div>게시물 목록 로딩중...</div>;
-  }
-
+  const data = use(listPromise);
   return (
     <>
       <h2>게시물 { data.length }건.</h2>
+      <hr />
+      <Suspense fallback={<div>1번 게시물 로딩중...</div>}>
+        <FetchAsYouRender />
+      </Suspense>
     </>
   );
 }
