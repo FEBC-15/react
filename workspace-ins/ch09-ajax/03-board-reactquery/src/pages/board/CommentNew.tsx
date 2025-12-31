@@ -1,13 +1,19 @@
 import type { BoardReplyCreateRes } from "@/types/board";
 import { getAxiosInstance } from "@/utils/axiosInstance";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const axiosInstance = getAxiosInstance();
 
 function CommentNew() {
 
+  const queryClient = useQueryClient();
+
   const { mutate: requestAddComment } = useMutation({
     mutationFn: (formData: FormData) => axiosInstance.post<BoardReplyCreateRes>('/posts/3/replies', formData),
+    onSuccess: () => { // mutationFn이 성공을 응답받을 경우 호출되는 콜백 함수(2xx 응답 상태 코드)
+      // 기존 캐시 무효화
+      queryClient.invalidateQueries({ queryKey: ['posts', '3', 'replies'] });
+    },
   });
   
   // 등록 버튼 누르면 댓글 등록 요청
