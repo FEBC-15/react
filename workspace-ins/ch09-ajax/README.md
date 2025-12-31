@@ -183,19 +183,150 @@ useQuery(options)
   - status: mutation 상태 (`'idle'`, `'pending'`, `'error'`, `'success'`)
   - 기타 속성: https://tanstack.com/query/latest/docs/react/reference/useMutation
 
-##### invalidateQueries
+### 7.5 invalidateQueries
 * 특정 쿼리를 무효화(stale)하여 자동으로 재요청하도록 하는 메서드
 * 데이터 변경 후 관련된 쿼리 데이터를 최신 상태로 갱신할 때 사용
-* 사용 예시
+* `useQueryClient` Hook을 통해 `queryClient` 객체를 가져온 후 사용
+
+#### API
+```tsx
+queryClient.invalidateQueries(options)
+```
+
+##### options
+* queryKey (선택사항)
+  - 무효화할 쿼리를 식별하는 키 값 (배열 형태)
+  - `queryKey`를 지정하지 않으면 모든 쿼리가 무효화됨
+  - 부분 일치: `queryKey`의 일부만 지정하면 해당 키로 시작하는 모든 쿼리가 무효화됨
+    ```tsx
+    // 정확히 일치하는 쿼리만 무효화
+    queryClient.invalidateQueries({ queryKey: ['posts', '3', 'replies'] });
+    
+    // 'posts'로 시작하는 모든 쿼리 무효화 (['posts'], ['posts', '3'], ['posts', '3', 'replies'] 등)
+    queryClient.invalidateQueries({ queryKey: ['posts'] });
+    
+    // 모든 쿼리 무효화
+    queryClient.invalidateQueries();
+    ```
+* exact: `queryKey`가 정확히 일치하는 쿼리만 무효화할지 여부 (기본값: false)
+  - `true`: `queryKey`와 정확히 일치하는 쿼리만 무효화
+  - `false`: `queryKey`로 시작하는 모든 쿼리 무효화
+* refetchType: 무효화된 쿼리의 재요청 방식 (기본값: 'active')
+  - `'active'`: 현재 활성화된 쿼리만 재요청
+  - `'all'`: 무효화된 모든 쿼리 재요청
+  - `'none'`: 재요청하지 않고 stale 상태로만 변경
+* predicate: 쿼리를 필터링하는 함수 (선택사항)
+  - 함수가 `true`를 반환하는 쿼리만 무효화
   ```tsx
-  import { useQueryClient } from '@tanstack/react-query';
-  
+  queryClient.invalidateQueries({
+    predicate: (query) => query.queryKey[0] === 'posts' && query.state.data !== undefined
+  });
+  ```
+* 기타 옵션: https://tanstack.com/query/latest/docs/reference/QueryClient/#queryclientinvalidatequeries
+
+##### 반환값
+* Promise를 반환하며, 무효화 작업이 완료되면 resolve됨
+
+##### 사용 예시
+```tsx
+import { useQueryClient } from '@tanstack/react-query';
+
+const queryClient = useQueryClient();
+
+// 새로운 댓글 작성 후 3번 게시물의 댓글 목록을 무효화하여 재요청
+queryClient.invalidateQueries({ queryKey: ['posts', '3', 'replies'] });
+
+// mutation 성공 후 관련 쿼리 무효화
+const mutation = useMutation({
+  mutationFn: (newReply) => axiosInstance.post('/posts/3/replies', newReply),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ['posts', '3', 'replies'] });
+  }
+});
+```
+
+* 참고: https://tanstack.com/query/latest/docs/reference/QueryClient/#queryclientinvalidatequeries
+
+### 7.6 prefetchQuery
+* 데이터를 미리 가져와서 캐시에 저장하는 메서드
+* 사용자가 실제로 해당 데이터를 요청하기 전에 미리 로드하여 성능을 향상시킬 수 있음
+* 링크에 마우스를 올렸을 때, 다음 페이지로 이동하기 전에, 또는 특정 조건에서 데이터를 미리 로드할 때 사용
+* `prefetchQuery`로 미리 가져온 데이터는 캐시에 저장되므로, 이후 `useQuery`나 `useSuspenseQuery`에서 동일한 `queryKey`로 요청하면 서버에 재요청하지 않고 캐시된 데이터를 즉시 반환
+* `useQueryClient` Hook을 통해 `queryClient` 객체를 가져온 후 사용
+
+#### API
+```tsx
+queryClient.prefetchQuery(options)
+```
+
+##### options
+* queryKey (필수)
+  - 쿼리를 식별하는 고유한 키 값 (배열 형태)
+  - `useQuery`의 `queryKey`와 동일한 형식
+* queryFn (필수)
+  - 쿼리 실행 시 호출되는 함수로, Promise를 반환해야 함
+  - 일반적으로 axios나 fetch를 사용한 API 호출 함수를 반환
+* 기타 옵션: `useQuery`와 동일한 옵션 사용 가능
+
+##### 반환값
+* Promise를 반환하며, 데이터 패칭이 완료되면 resolve됨
+* 이미 캐시에 fresh한 데이터가 있으면 서버에 요청하지 않고 즉시 resolve
+
+##### 사용 예시
+```tsx
+import { useQueryClient } from '@tanstack/react-query';
+
+const queryClient = useQueryClient();
+
+// 1번 게시물 데이터를 미리 가져와서 캐시에 저장
+queryClient.prefetchQuery({
+  queryKey: ['posts', 1],
+  queryFn: () => axiosInstance.get('/posts/1'),
+});
+
+// 링크에 마우스를 올렸을 때 미리 데이터 로드
+function PostLink({ postId }: { postId: number }) {
   const queryClient = useQueryClient();
   
-  // 새로운 댓글 작성 후 3번 게시물의 댓글 목록을 무효화하여 재요청
-  queryClient.invalidateQueries({ queryKey: ['posts', 3, 'replies'] });
-  ```
-* 참고: https://tanstack.com/query/latest/docs/reference/QueryClient/#queryclientinvalidatequeries
+  const handleMouseEnter = () => {
+    queryClient.prefetchQuery({
+      queryKey: ['posts', postId],
+      queryFn: () => axiosInstance.get(`/posts/${postId}`),
+    });
+  };
+  
+  return (
+    <Link to={`/posts/${postId}`} onMouseEnter={handleMouseEnter}>
+      게시물 {postId}
+    </Link>
+  );
+}
+
+// 렌더링 중에 여러 데이터를 동시에 미리 가져오기
+function PostList() {
+  const queryClient = useQueryClient();
+  
+  // 게시물 목록 조회와 동시에 첫 번째 게시물 상세 정보도 미리 가져오기
+  queryClient.prefetchQuery({
+    queryKey: ['posts', 1],
+    queryFn: () => axiosInstance.get('/posts/1'),
+  });
+  
+  queryClient.prefetchQuery({
+    queryKey: ['posts', 1, 'replies'],
+    queryFn: () => axiosInstance.get('/posts/1/replies'),
+  });
+  
+  const { data } = useQuery({
+    queryKey: ['posts'],
+    queryFn: () => axiosInstance.get('/posts'),
+  });
+  
+  return <div>게시물 목록...</div>;
+}
+```
+
+* 참고: https://tanstack.com/query/latest/docs/reference/QueryClient/#queryclientprefetchquery
 
 # 8. 데이터 패칭 패턴
 * 컴포넌트 렌더링과 비동기 데이터 로드 간의 관계를 정의하는 패턴으로, 각 패턴은 데이터 요청과 UI 렌더링의 타이밍을 다르게 처리함
