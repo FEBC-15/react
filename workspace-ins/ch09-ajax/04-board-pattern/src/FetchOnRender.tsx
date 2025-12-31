@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 // 게시글 상세 조회 API 호출
 function fetchPost() {
-  return axios.get<BoardInfoRes>('https://fesp-api.koyeb.app/market/posts/10', {
+  return axios.get<BoardInfoRes>('https://fesp-api.koyeb.app/market/posts/10?delay=3000', {
     headers: {
       'Client-Id': 'openmarket'
     }
@@ -13,7 +13,7 @@ function fetchPost() {
 
 // 댓글 목록 조회 API 호출
 function fetchComments() {
-  return axios.get<BoardReplyListRes>('https://fesp-api.koyeb.app/market/posts/10/replies', {
+  return axios.get<BoardReplyListRes>('https://fesp-api.koyeb.app/market/posts/10/replies?delay=2000', {
     headers: {
       'Client-Id': 'openmarket'
     }
