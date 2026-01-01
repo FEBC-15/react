@@ -4,15 +4,15 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const axiosInstance = getAxiosInstance();
 
-function CommentNew() {
+function CommentNew({ postId }: { postId: number }) {
 
   const queryClient = useQueryClient();
 
   const { mutate: requestAddComment, isPending, error } = useMutation({
-    mutationFn: (formData: FormData) => axiosInstance.post<BoardReplyCreateRes>('/posts/3/replies', formData),
+    mutationFn: (formData: FormData) => axiosInstance.post<BoardReplyCreateRes>(`/posts/${postId}/replies`, formData),
     onSuccess: () => { // mutationFn이 성공을 응답받을 경우 호출되는 콜백 함수(2xx 응답 상태 코드)
       // 기존 캐시 무효화
-      queryClient.invalidateQueries({ queryKey: ['posts', '3', 'replies'] });
+      queryClient.invalidateQueries({ queryKey: ['posts', postId, 'replies'] });
     },
   });
   
