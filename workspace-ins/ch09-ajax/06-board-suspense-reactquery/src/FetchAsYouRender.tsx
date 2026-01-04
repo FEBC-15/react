@@ -1,6 +1,6 @@
 import type { BoardInfoRes, BoardReplyListRes } from "@/types/board";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { use } from "react";
 
 // 게시글 상세 조회 API 호출
 function fetchPost() {
@@ -20,12 +20,12 @@ function fetchComments() {
   }).then(res => res.data.item);
 }
 
-const postPromise = fetchPost();
-const commentsPromise = fetchComments();
-
 // 게시글 상세 조회 화면
 function FetchAsYouRender() {
-  const data = use(postPromise);
+  const { data } = useSuspenseQuery({
+    queryKey: ['posts', '10'],
+    queryFn: fetchPost,
+  });
 
   return (
     <>
@@ -37,7 +37,10 @@ function FetchAsYouRender() {
 
 // 댓글 목록 조회 화면
 export function Comments() {
-  const data = use(commentsPromise);
+  const { data } = useSuspenseQuery({
+    queryKey: ['posts', '10', 'replies'],
+    queryFn: fetchComments,
+  });
 
   const list = data.map((item) => <li key={item._id}>{item.content}</li>);
 
