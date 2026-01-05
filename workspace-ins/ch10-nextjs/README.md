@@ -481,7 +481,7 @@ npm run dev
 * app/posts/layout.tsx
 
   ```tsx
-  export default function RootLayout({
+  export default function PostLayout({
     children,
   }: Readonly<{
     children: React.ReactNode;
