@@ -84,7 +84,7 @@ npm install next@latest react@latest react-dom@latest
 * pages 디렉토리: Pages 라우터 사용
 
   ```sh
-  mkdir -p src/app
+  mkdir -p app
   ```
 
 <img src="../../images/nextjs/app-getting-started.png" width="800">
@@ -631,16 +631,28 @@ import Link from "next/link";
 ...
 ```
 
-#### 활성 링크 체크
-* `usePathname()` 훅을 이용해서 url 확인 후 href와 비교
+### 4.5.2 usePathname 훅
+* 현재 URL 경로를 가져오는 훅
+* 활성 링크 스타일링 등에 활용
+* 'use client' 지시어가 있는 클라이언트 컴포넌트에서만 사용 가능
+
+  ```tsx
+  'use client'
+  import { usePathname } from 'next/navigation';
+  
+  const pathname = usePathname(); // 현재 경로 반환 (예: '/posts')
+  ```
+
+#### 활성 링크 체크 예시
+* `usePathname()` 훅을 이용해서 현재 URL 확인 후 href와 비교하여 활성 링크 스타일 적용
 
 * app/globals.css 작성
   ```css
-  ...
-  /* Tailwind CSS의 커스텀 컴포넌트 클래스 정의 */
+  @import "tailwindcss";
+
   @layer components {
     .cs-active {
-      @apply text-orange-500;
+      color: rgb(249 115 22);
     }
   }
   ```
@@ -658,7 +670,6 @@ import Link from "next/link";
   }: Readonly<{
     children: React.ReactNode;
   }>) {
-
     const pathname = usePathname();
     console.log(pathname);
     const isActive = (path: string) => pathname === path ? 'cs-active' : '';
@@ -686,7 +697,7 @@ import Link from "next/link";
   }
   ```
 
-### 4.5.2 useRouter 훅
+### 4.5.3 useRouter 훅
 * 프로그래밍 방식으로 페이지 이동 가능
 * 일반적으로는 Link 컴포넌트 사용을 권장
 * 프로그래밍 방식으로 이동이 필요한 경우에만 사용 (예: 폼 제출 후, 조건부 이동 등)
@@ -705,7 +716,7 @@ import Link from "next/link";
 - `router.forward()`: 다음 페이지로 이동
 - `router.refresh()`: 현재 페이지 새로고침
 
-### 4.5.3 redirect
+### 4.5.4 redirect
 ```tsx
 import { redirect } from 'next/navigation';
 ```
@@ -732,18 +743,18 @@ export async function createPost(formData) {
 }
 ```
 
-### 4.5.4 permanentRedirect
+### 4.5.5 permanentRedirect
 * 응답 상태코드가 308인 점만 다르고 redirect와 동일
   - 308 응답 상태코드: Permanent Redirect, 원래 요청 방식과 본문을 그대로 유지하면서 새로운 페이지 요청, 다음번 요청에는 새로운 URL 사용
   
-### 4.5.5 history API
+### 4.5.6 history API
 * 브라우저의 history API 사용
   - window.history.pushState
   - window.history.replaceState
 * usePathname(), useSearchParams() 훅으로 URL과 파라미터 추출해서 low-level로 URL 변경 가능
 * useRouter() 훅을 사용하는게 페이지 전환 시 SSR, SSG, 데이터 fetching, 페이지 전환 효과 등 Next.js 기능을 활용할 수 있으므로 useRouter() 사용을 권장
 
-### 4.5.6 next.config.ts의 redirects
+### 4.5.7 next.config.ts의 redirects
 * 선언적 redirect
 
   ```ts
@@ -770,7 +781,7 @@ export async function createPost(formData) {
   export default nextConfig;
   ```
 
-### 4.5.7 NextResponse.redirect
+### 4.5.8 NextResponse.redirect
 * 미들웨어에서 사용
 * 사용사례: 로그인되지 않은 사용자를 로그인 페이지로 이동
 * 파일명: `middleware.ts` 또는 `middleware.js` (프로젝트 루트 또는 `src` 폴더)
@@ -1237,7 +1248,7 @@ export function POST(request: NextRequest) {
 * 게시물 등록
 
 ```tsx
-// src/data/actions/boardAction.ts
+// data/actions/boardAction.ts
 'use server';
 
 import { PostRes } from "@/types/board";
@@ -1258,7 +1269,7 @@ export async function createPost(prevState: PostRes, formData: FormData) {
 ```
 
 ```tsx
-// src/app/posts/new/RegistForm.tsx
+// app/posts/new/RegistForm.tsx
 'use client';
 
 import { createPost } from "@/data/actions/boardAction";
@@ -1282,7 +1293,7 @@ export default function RegistForm() {
 * 게시물 목록 조회
 
 ```tsx
-// src/data/functions/boardFetch.ts
+// data/functions/boardFetch.ts
 import { Post } from "@/types/board";
 
 export async function fetchPosts(): Promise<Post[]> {
@@ -1297,7 +1308,7 @@ export async function fetchPosts(): Promise<Post[]> {
 ```
 
 ```tsx
-// src/app/posts/page.tsx
+// app/posts/page.tsx
 import Link from "next/link";
 import { fetchPosts } from "@/data/functions/boardFetch";
 
