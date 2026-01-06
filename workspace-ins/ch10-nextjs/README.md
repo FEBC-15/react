@@ -1319,7 +1319,6 @@ export function POST(request: NextRequest) {
 
 ### 6.2.2 SSR vs. RSC(React Server Component)
 * SSR은 페이지 단위, RSC는 컴포넌트 단위
-* Next.js의 page 라우터가 SSR 방식, app 라우터가 RSC 방식
 * SSR은 page 단위에서만 서버 관련 함수 사용
   - getServerSideProps 내에서 데이터를 받아오고 데이터를 렌더링할 컴포넌트에는 props로 전달
 * RSC는 데이터를 렌더링할 컴포넌트에서 직접 서버 관련 함수 사용
