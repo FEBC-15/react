@@ -1323,7 +1323,7 @@ export default function NotFound() {
   - 브라우저는 서버로부터 받은 HTML을 파싱하면서 현재 페이지의 동작에 필요한 자바스크립트를(클라이언트 컴포넌트) 다운로드 후 실행
 3. 정적인 페이지 뷰
   - 자바스크립트를 다운로드 하는 중이라도 HTML 파싱이 완료되면, 즉 DOM 생성 후 화면이 출력되면 정적인 상태의 화면을 사용자가 볼 수 있음
-  - 전체 내용이 로드되기 전이라도 사용자가 링크를 클릭해서 다른 페이지로 이동을 할 수 있음
+  - 전체 내용이 로드되기 전이라도 사용자가 링크를 클릭해서 다른 페이지로 이동 할 수 있음
 4. 하이드레이션
   - 다운로드 받은 자바스크립트를 이용해서 가상 DOM을 만들어 브라우저 DOM과 동기화 시키고 이벤트 추가 등의 작업이 끝나면 사용자와 상호작용 가능한 상태가 됨
 5. 리액트 앱으로 동작
@@ -1338,24 +1338,33 @@ export default function NotFound() {
 * 효율적인 SEO 가능
   - 정적으로 응답한 HTML에 검색 엔진에 필요한 정보를 포함시키기 때문에 검색 엔진이 자바스크립트를 실행하지 않더라도 필요한 정보를 바로 확인 가능
 
-### 6.2.2 SSR vs. RSC(React Server Component)
-* SSR은 페이지 단위, RSC는 컴포넌트 단위
-* SSR은 page 단위에서만 서버 관련 함수 사용
-  - getServerSideProps 내에서 데이터를 받아오고 데이터를 렌더링할 컴포넌트에는 props로 전달
-* RSC는 데이터를 렌더링할 컴포넌트에서 직접 서버 관련 함수 사용
+### 6.2.2 전통적인 SSR(페이지 단위) vs RSC(컴포넌트 단위)
+* SSR(Server Side Rendering): 서버에서 HTML을 생성하는 렌더링 방식
+* RSC(React Server Component): React 팀에서 개발한 컴포넌트 모델로, 서버에서만 실행되는 컴포넌트
+  - SSR, SSG, ISR 등 다양한 렌더링 전략과 함께 사용 가능
+
+#### 전통적인 SSR(Next.js Pages Router 방식)
+* 페이지 단위로 서버 렌더링 수행
+* `getServerSideProps` 같은 페이지 레벨 함수에서만 서버 관련 작업 가능
+  - 데이터를 받아오고 렌더링할 컴포넌트에는 props로 전달
+  - 페이지 전체가 서버에서 렌더링됨
+* 페이지 내에서 자주 바뀌는 컴포넌트가 하나 있어도 해당 페이지에 접속할 때 매번 모든 컴포넌트를 동적으로 서버에서 렌더링함
+
+#### RSC(Next.js App Router 방식)
+* 컴포넌트 단위로 서버 렌더링 수행
+* 데이터를 렌더링할 컴포넌트에서 직접 서버 관련 함수 사용 가능
   - 관심사 분리: page 컴포넌트는 UI, 데이터는 하위 컴포넌트에서 직접 생성
   - props 드릴링 없음
-  - 컴포넌트 단위로 SSR 전략을 선택할 수 있음
-    + SSR(Server Side Rendering)
-      - SSG(Static Site Generation)    
-      - ISR(Incremental Static Regeneration)
-* 페이지 내에서 자주 바뀌는 컴포넌트가 하나 있으면 SSR은 해당 페이지에 접속할 때 매번 모든 컴포넌트를 동적으로 서버에서 렌더링함
-  - RSC는 해당 컴포넌트만 동적으로 렌더링함
+  - 컴포넌트 단위로 렌더링 전략을 선택할 수 있음
+    + SSR(Server Side Rendering): 요청 시마다 서버에서 렌더링
+    + SSG(Static Site Generation): 빌드 시 정적 페이지 생성
+    + ISR(Incremental Static Regeneration): 정적 페이지를 주기적으로 재생성
+* 페이지 내에서 자주 바뀌는 컴포넌트가 하나 있으면 해당 컴포넌트만 동적으로 렌더링하고 나머지는 정적으로 렌더링 가능
 
-#### 6.2.2.1 Next.js RSC의 장점
+#### 6.2.2.1 RSC의 장점
 * 백엔드 데이터 리소스(DB 등)에 직접 액세스 가능
   - 백엔드 개발 가능
-  - RSC가 없던 Next.js 13 이전에는 페이지 루트에서만 백엔드 접근이 가능했었지만 RSC는 컴포넌트 단위의 백엔드 접근이 가능
+  - Next.js Pages Router(13 이전)에서는 페이지 루트에서만 백엔드 접근이 가능했지만, App Router의 RSC는 컴포넌트 단위의 백엔드 접근이 가능
 * 클라이언트에서 여러 번 데이터 요청을 하지 않고 한 번의 요청으로 모든 데이터를 가져올 수 있음
   - 폭포수 현상을 줄임
   - Next.js 서버와 데이터 리소스(DB 등)가 보통 지리적으로 가까운 곳에 있기 때문에 네트워크 지연 시간을 줄임
@@ -1371,8 +1380,8 @@ export default function NotFound() {
 * 렌더링 작업을 청크로 분할해서 스트리밍하면 클라이언트는 전체 HTML을 다 받기 전에도 페이지의 일부를 보여줄 수 있음
 * 코드 자동 분할
 
-### 6.2.3 서버 컴포넌트 vs. 클라이언트 컴포넌트
-#### 6.2.3.1 서버 컴포넌트
+### 6.2.3 서버 컴포넌트(RSC) vs. 클라이언트 컴포넌트
+#### 6.2.3.1 서버 컴포넌트(RSC)
 * 오직 서버에서만 실행되는 컴포넌트
 * Next.js의 app 라우터를 사용하면 모든 컴포넌트는 기본으로 서버 컴포넌트가 됨
 
@@ -1382,13 +1391,25 @@ export default function NotFound() {
 2. 각 라우트 세그먼트의 대상 컴포넌트는 렌더링에 필요한 데이터를 만들고(fetch) RSC Payload 생성
   - loading.tsx 파일이 있거나 `<Suspense>`가 있다면 해당 위치에 fallback UI를 렌더링
     + 이후 데이터 fetching이 완료되면 추가 데이터를 스트리밍 방식으로 전송
-  - RSC Payload: 서버에서 렌더링된 컴포넌트 트리 구조(클라이언트 컴포넌트가 들어갈 자리 표시), 클라이언트에서 사용할 자바스크립트 파일 경로, 서버 컴포넌트에서 클라이언트 컴포넌트에 전달하는 props 데이터를 표현한 특수한 포맷의 데이터
-3. RSC Payload를 기반으로 HTML 생성
-  - 초기 접속이나 새로고침 등으로 페이지가 로드될 때 HTML 생성 및 전송
-  - 이후 페이지 이동 시에는 RSC Payload만 생성해서 전송
+  - RSC Payload: 서버에서 렌더링된 컴포넌트 트리 구조와 관련 메타데이터를 표현한 특수한 포맷의 데이터
+    + RSC Payload에 포함되는 주요 정보
+      * 컴포넌트 트리 구조: 서버에서 렌더링된 컴포넌트의 계층 구조와 각 컴포넌트의 타입 정보
+      * 클라이언트 컴포넌트 마커: 클라이언트 컴포넌트가 들어갈 자리 표시(placeholder)와 해당 컴포넌트의 식별자
+      * JavaScript 번들 경로: 클라이언트에서 다운로드해야 할 JavaScript 파일 경로 목록
+      * Props 데이터: 서버 컴포넌트에서 클라이언트 컴포넌트로 전달되는 props 값(직렬화된 형태)
+      * 서버 컴포넌트 렌더링 결과: 서버 컴포넌트가 렌더링한 정적 HTML 콘텐츠(초기 로드 시)
+      * 스트리밍 청크 정보: Suspense 경계와 스트리밍된 데이터 청크의 위치 및 순서 정보
+      * 라우트 메타데이터: 현재 라우트의 경로, 파라미터, 쿼리 스트링 등의 정보
+3. HTML 생성 (초기 접속이나 새로고침 등으로 페이지가 로드될 때만)
+  - RSC Payload를 기반으로 HTML 생성
   - 서버 컴포넌트 트리 하위에 클라이언트 컴포넌트가 있는 경우: 서버 컴포넌트는 서버에서만 실행되어 HTML 생성, 클라이언트 컴포넌트는 서버에서도 실행되어 HTML 생성(이벤트 핸들러는 포함되지 않음)
-4. HTML과 RSC Payload를 클라이언트에 전송
-  - HTML은 브라우저 자체의 렌더링으로 빠르게 화면 표시
+4. 클라이언트에 데이터 전송
+  * 초기 접속이나 새로고침 등으로 페이지가 로드될 때
+    - HTML + RSC Payload 모두 브라우저에 전송
+    - HTML은 브라우저 자체의 렌더링으로 빠르게 화면 표시
+  * 이후 페이지 이동 시 (클라이언트 사이드 네비게이션, 예: `<Link>` 클릭)
+    - RSC Payload만 브라우저에 전송 (HTML은 전송하지 않음)
+    - 브라우저가 RSC Payload를 받아서 클라이언트에서 DOM을 업데이트
   - 서버 컴포넌트는 서버에서만 실행되며 클라이언트로 JavaScript 번들이 전송되지 않음
   - 서버 컴포넌트로 렌더링된 HTML은 정적이며 이벤트 핸들러가 없음
   - 하위 클라이언트 컴포넌트: JavaScript 번들이 클라이언트로 전송됨
@@ -1399,30 +1420,25 @@ export default function NotFound() {
   - 이벤트 핸들러를 등록해서 사용자와 인터렉션이 가능한 상태로 만듦
 
 #### 6.2.3.2 클라이언트 컴포넌트
-* 서버와 클라이언트에서 실행되는 컴포넌트
+* 서버와 클라이언트 양쪽에서 실행되는 컴포넌트
 * 파일의 첫 줄에 'use client' 지시어 추가
-* 서버에서 먼저 실행된 후 결과와(HTML) 번들링된 클라이언트 컴포넌트를(JS) 클라이언트로 전송
-* 이후 클라이언트에서도 실행되는 컴포넌트로, 브라우저에서만 할 수 있는 작업이 필요한 경우 클라이언트 컴포넌트로 만들어야 함
+* 브라우저에서만 할 수 있는 작업이 필요한 경우 클라이언트 컴포넌트로 만들어야 함
   - 이벤트 처리, DOM 직접 핸들링
   - useState, useEffect 등 상태와 라이프사이클 관련 기능
   - 브라우저 API(window, document, localStorage, geolocation 등) 사용
-* 클라이언트 컴포넌트가 import해서 사용하는 모든 자식 컴포넌트는 암묵적으로 클라이언트 컴포넌트가 되고 자바스크립트 번들에 포함되어 클라이언트로 전송됨
-* 클라이언트 컴포넌트가 서버 컴포넌트를 직접 import 할 수는 없지만 children으로 포함하는 것은 가능
-  - 서버 컴포넌트는 서버에만 존재하기 때문에 브라우저에서 실행되는 클라이언트 컴포넌트에서 직접 import 해서 호출하는 것은 불가능
-  - 서버 컴포넌트를 자식 컴포넌트로 포함하면 서버에서 먼저 실행된 후 결과가 자식 컴포넌트에 추가되므로 가능
+* 클라이언트 컴포넌트의 특성
+  - 클라이언트 컴포넌트가 import해서 사용하는 모든 자식 컴포넌트는 암묵적으로 클라이언트 컴포넌트가 되고 자바스크립트 번들에 포함되어 클라이언트로 전송됨
+  - 클라이언트 컴포넌트가 서버 컴포넌트를 직접 import 할 수는 없지만 children으로 포함하는 것은 가능
+    + 서버 컴포넌트는 서버에만 존재하기 때문에 브라우저에서 실행되는 클라이언트 컴포넌트에서 직접 import 해서 호출하는 것은 불가능
+    + 서버 컴포넌트를 자식 컴포넌트로 포함하면 서버에서 먼저 실행된 후 결과가 자식 컴포넌트에 추가되므로 가능
+* 클라이언트 컴포넌트의 렌더링 특징
+  - 서버에서 초기 HTML 생성 시 클라이언트 컴포넌트도 서버에서 실행되어 HTML에 포함되지만 이벤트 핸들러는 포함되지 않음
+  - 클라이언트 컴포넌트의 JavaScript 번들이 클라이언트로 전송되어 하이드레이션 과정에서 이벤트 핸들러가 등록됨
+  - 페이지별로 클라이언트 컴포넌트가 코드 분할되어 필요한 컴포넌트만 JS 번들로 다운로드
+  - 이후 페이지 이동 시 필요한 클라이언트 컴포넌트 번들만 추가로 다운로드 (이전에 다운받았다면 브라우저 캐시에서 재사용)
+  - 상태 변경 등으로 인한 리렌더링은 새로고침 없이 클라이언트에서만 실행
 
-##### 클라이언트 컴포넌트의 렌더링
-* 페이지 로드일 경우
-  - 초기 접속이나 새로고침 등으로 페이지가 로드될 때
-  - 서버는 서버 컴포넌트와 클라이언트 컴포넌트 모두 렌더링해서 HTML 생성 후 응답
-  - 접속한 페이지에서 필요한 클라이언트 컴포넌트는 페이지별로 분할되어서 제공되고 필요한 컴포넌트만 JS 번들로 다운로드
-* 페이지 이동시
-  - 이동한 페이지에서 필요한 클라이언트 컴포넌트 번들만 추가로 다운로드
-  - 이전에 다운받았다면 브라우저 캐시에서 재사용
-* 페이지는 변경되지 않고 리렌더링 되는 경우
-  - 새로고침 없이 클라이언트에서 렌더링
-
-### 6.2.4 Next.js의 RSC(React Server Component) 렌더링 방식
+### 6.2.4 Next.js에서 RSC를 활용한 렌더링 전략
 
 #### 6.2.4.1 정적 렌더링(Static Rendering)
 * SSG(Static Site Generation)
@@ -1517,59 +1533,20 @@ export default function NotFound() {
 * 게시물 등록
 
 ```tsx
-// data/actions/boardAction.ts
+// actions/board.ts
 'use server';
 
-import { PostRes } from "@/types/board";
-
-export async function createPost(prevState: PostRes, formData: FormData) {
+// 게시물 등록
+export async function createPost(formData: FormData) {
   const title = formData.get('title');
   const content = formData.get('content');
-  const res = await fetch('https://fesp-api.koyeb.app/market/posts', {
+  const res = await fetch(`https://fesp-api.koyeb.app/market/posts`, {
     method: 'POST',
     body: JSON.stringify({ title, content }),
     headers: {
       'Client-Id': 'openmarket',
-    },
-  });
-  const data = await res.json();
-  return data;
-}
-```
-
-```tsx
-// app/posts/new/RegistForm.tsx
-'use client';
-
-import { createPost } from "@/data/actions/boardAction";
-import { useActionState } from "react";
-
-export default function RegistForm() {
-
-  const [state, formAction, isPending] = useActionState(createPost, null);
-
-  return (
-    <form action={ formAction }>
-      <input type="text" name="title" placeholder="제목" />
-      <input type="text" name="content" placeholder="내용" />
-      <button type="submit" disabled={isPending}>등록</button>
-    </form>
-  )
-}
-```
-
-#### `서버 함수`
-* 게시물 목록 조회
-
-```tsx
-// data/functions/boardFetch.ts
-import { Post } from "@/types/board";
-
-export async function fetchPosts(): Promise<Post[]> {
-  const res = await fetch('https://fesp-api.koyeb.app/market/posts', {
-    headers: {
-      'Client-Id': 'openmarket',
-    },
+      'Content-Type': 'application/json',
+    }
   });
   const data = await res.json();
   return data.item;
@@ -1577,21 +1554,20 @@ export async function fetchPosts(): Promise<Post[]> {
 ```
 
 ```tsx
-// app/posts/page.tsx
-import Link from "next/link";
-import { fetchPosts } from "@/data/functions/boardFetch";
+// app/posts/new/RegistForm.tsx
+'use client';
 
-export default async function ListPage() {
-  const list = await fetchPosts();
-  const posts = list.map(post => <li key={ post._id }><Link href={`/posts/${post._id}`}>{ post.title }</Link></li>);
+import { createPost } from "@/actions/post";
 
+export default function RegistForm(){
   return (
-    <>
-      <h1>목록 조회</h1>
-      <ul>
-        { posts }
-      </ul>
-    </>
+    <form action={createPost}>
+      <label htmlFor="title">제목</label>
+      <input type="text" id="title" name="title" />
+      <label htmlFor="content">내용</label>
+      <input type="text" id="content" name="content" />
+      <button type="submit">등록</button>
+    </form>
   );
 }
 ```
@@ -1702,21 +1678,23 @@ export default function ClientComponent({ createPost }) {
 
   ```tsx
   'use client';
-  import { createPost } from "@/data/actions/boardAction";
-  export default function RegistForm() {
+
+  import { createPost } from "@/actions/post";
+
+  export default function RegistForm(){
     return (
-      <>
-        <form action={ createPost }>
-          <input type="text" name="title" placeholder="제목을 입력하세요" />
-          <textarea name="content" placeholder="내용을 입력하세요" />
-          <button type="submit">등록</button>
-        </form>
-      </>
-    )
+      <form action={createPost}>
+        <label htmlFor="title">제목</label>
+        <input type="text" id="title" name="title" />
+        <label htmlFor="content">내용</label>
+        <input type="text" id="content" name="content" />
+        <button type="submit">등록</button>
+      </form>
+    );
   }
   ```
 
-  - `서버 액션`이 호출되면 Form 내부의 입력 요소들 값이 저장된 FormData 객체가 자동으로 전달됨
+  - `서버 액션`이 호출되면 Form 내부의 입력 요소들 값이 FormData 객체로 만들어져서 서버 액션의 인자값으로 전달됨
   - 자바스크립트가 로드되기 이전이거나 비활성화 되었어도 폼 제출 가능
     + 자바스크립트가 로드되기 이전에 제출되면 큐에 담은 후 클라이언트 하이드레이션의 우선 순위로 지정됨
   - submit 이후에 새로고침 없음
@@ -1749,8 +1727,8 @@ export default function ClientComponent({ createPost }) {
 * 이전 fetch 작업 후 다음 fetch 작업을 하기 때문에 폭포수 현상 발생
 * 다음 데이터를 가져올 때 이전 데이터가 필요한 경우 사용(성능 저하)
 * loading 페이지나 `<Suspense>`를 사용해서 데이터 스트리밍 중에 로딩중 상태를 보여주면 전체가 블로킹 되는 문제를 막을 수 있음
-
   - 사용자는 이미 로딩된 컨텐츠에 대해서는 인터렉션이 가능
+
   ```tsx
   // ...
 

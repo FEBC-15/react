@@ -3,8 +3,10 @@ import type { DeleteRes, ErrorRes, Reply } from "@/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { Link, useParams } from "react-router";
+import useUserStore from "@/zustand/userStore";
 
 function CommentListItem({ reply }: { reply: Reply }) {
+  const { user } = useUserStore();
   const { _id } = useParams();
   const queryClient = useQueryClient();
   const { mutate } = useMutation<DeleteRes, AxiosError<ErrorRes>, void>({
@@ -36,9 +38,11 @@ function CommentListItem({ reply }: { reply: Reply }) {
       </div>
       <div className="flex justify-between items-start mb-2">
         <p className="whitespace-pre-wrap text-sm flex-1">{reply.content}</p>
-        <form onSubmit={ onSubmit } className="inline ml-2">
-          <button type="submit" className="bg-red-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">삭제</button>
-        </form>
+        { user && user?._id === reply.user._id && (
+          <form onSubmit={ onSubmit } className="inline ml-2">
+            <button type="submit" className="bg-red-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">삭제</button>
+          </form>
+        ) }
       </div>
     </div>
   );

@@ -4,9 +4,10 @@ import type { ErrorRes, PostListItem, PostListRes, PostType } from "@/types";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { Link, useParams } from "react-router";
+import useUserStore from "@/zustand/userStore";
 
 function List() {
-
+  const { user } = useUserStore();
   const { type = 'info' } = useParams<{ type: PostType }>();
 
   // useQuery<queryFn의 리턴타입, 에러타입, select의 리턴타입>
@@ -36,7 +37,9 @@ function List() {
           <button type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">검색</button>
         </form>
 
-        <Link to={`/${type}/new`} className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">글작성</Link>
+        { user && 
+          <Link to={`/${type}/new`} className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">글작성</Link>
+        }
       </div>
       <section className="pt-10">
         <table className="border-collapse w-full table-fixed">

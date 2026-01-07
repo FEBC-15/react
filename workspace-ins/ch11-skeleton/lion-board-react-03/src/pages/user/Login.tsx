@@ -1,20 +1,31 @@
 import { login } from "@/api/user";
 import InputError from "@/components/ui/InputError";
 import type { ErrorRes, LoginForm, UserCreateRes } from "@/types";
+import useUserStore from "@/zustand/userStore";
 import { useMutation } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
 import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 
 function Login() {
+  const setUser = useUserStore(store => store.setUser);
   const { register, formState: { errors }, handleSubmit, setError } = useForm<LoginForm>();
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { mutate } = useMutation<UserCreateRes, AxiosError<ErrorRes>, FormData>({
     mutationFn: login,
     onSuccess: (data) => {
+      const user = data.item;
+      setUser({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        token: user.token,
+      });
       alert(data.item.name + '님, 로그인 되었습니다.');
-      navigate(`/`); // 개발자 도구 Console의 AccessToken 복사 후 주석 해제
+      navigate(location.state?.from || `/`, { replace: true });
     },
     onError: (err) => {
       const errors = err.response?.data.errors;
@@ -56,6 +67,7 @@ function Login() {
               autoComplete="email"
               placeholder="이메일을 입력하세요"
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
+              defaultValue="u1@market.com"
               { ...register('email', { required: '이메일은 필수입니다.' }) }
             />
             <InputError target={ errors.email } />
@@ -68,6 +80,7 @@ function Login() {
               autoComplete="current-password"
               placeholder="비밀번호를 입력하세요"
               className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
+              defaultValue="11111111"
               { ...register('password', { required: '비밀번호는 필수입니다.' }) }
             />
             <InputError target={ errors.password } />

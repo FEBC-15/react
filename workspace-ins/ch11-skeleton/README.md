@@ -33,6 +33,10 @@
   - [2.14 댓글 삭제 기능 구현](#214-댓글-삭제-기능-구현)
   - [2.15 게시물 삭제 기능 구현](#215-게시물-삭제-기능-구현)
   - [2.16 Step 02 완료](#216-step-02-완료)
+- [3 Step 03 - 전역 상태 관리](#3-step-03---전역-상태-관리)
+  - [3.1 준비](#31-준비)
+  - [3.2 로그인과 JWT 토큰 관리](#32-로그인과-jwt-토큰-관리)
+  - [3.3 다크 모드 적용](#33-다크-모드-적용)
 
 # 0 개발 준비
 
@@ -1039,7 +1043,7 @@ export async function login(user: FormData) {
           <div className="flex items-center">
             <img
               className="w-8 mr-2 rounded-full"
-              src={reply.user.image}
+              src={reply.user.image  || '/images/favicon.svg'}
               alt={`${reply.user.name} 프로필 이미지`}
             />
             <Link to="" className="text-orange-400">{reply.user.name}</Link>
@@ -1351,7 +1355,13 @@ export default function InputError({ target }: { target: FieldError | undefined 
 * src/pages/user/Login.tsx의 `navigate(`/`);` 주석 해제
 
 ## 2.11 게시물 등록 컴포넌트 작성
-### 2.11.1 폼 데이터 관리
+### 2.11.1 글작성 링크 수정
+#### src/pages/board/List.tsx 수정
+```tsx
+<Link to={`/${type}/new`} className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">글작성</Link>
+```
+
+### 2.11.2 폼 데이터 관리
 #### src/pages/board/New.tsx 수정
 - react-hook-form 사용
 
@@ -1397,7 +1407,7 @@ export default function InputError({ target }: { target: FieldError | undefined 
   ...
   ```
 
-### 2.11.2 게시물 등록 기능 추가
+### 2.11.3 게시물 등록 기능 추가
 #### src/pages/board/New.tsx 수정
 - react query의 useMutation으로 게시물 등록 이벤트 추가
 
@@ -1797,3 +1807,512 @@ export default function InputError({ target }: { target: FieldError | undefined 
 ## 2.16 Step 02 완료
 * 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-react-02
 
+# 3 Step 03 - 전역 상태 관리
+* 로그인과 JWT 토큰 관리
+* 테마 적용
+
+## 3.1 준비
+### 3.1.1 프로젝트 생성
+* workspace/ch11-skeleton 폴더에서 실행
+
+  ```sh
+  # lion-board-react-02 폴더를 복사해서 lion-board-react-03 폴더 생성
+  cp -r lion-board-react-02 lion-board-react-03
+  ```
+
+* lion-board-react-03/src/components/layout/Header.tsx 파일 수정
+  - `라이언 보드 v.02` -> `라이언 보드 v.03`
+
+## 3.2 로그인과 JWT 토큰 관리
+* 로그인 완료 후에 전달되는 토큰을 전역 상태관리로 저장
+* 로그인 여부에 따른 조건부 렌더링
+  - 환영 메시지 vs. 로그인 버튼
+  - 내가 작성한 게시글만 수정, 삭제 버튼 노출
+* Authorization 요청 헤더에 access token 추가
+
+### 3.2.1 Zustand store 설정
+* src/zustand/userStore.ts 생성
+  ```ts
+  import { create, type StateCreator } from "zustand";
+  import { persist, createJSONStorage } from 'zustand/middleware';
+  import { type User } from '../types/user';
+
+  // 로그인한 사용자 정보를 관리하는 스토어의 상태 인터페이스
+  interface UserStoreState {
+    user: User | null;
+    setUser: (user: User | null) => void;
+    resetUser: () => void;
+  }
+
+  // 로그인한 사용자 정보를 관리하는 스토어 생성
+  // StateCreator: Zustand의 유틸리티 타입으로, set 함수의 타입을 자동으로 추론해줌
+  // 복잡한 타입 정의 없이도 set 함수가 올바른 타입으로 인식됨
+  const UserStore: StateCreator<UserStoreState> = (set) => ({
+    user: null,
+    setUser: (user: User | null) => set({ user }),
+    resetUser: () => set({ user: null }),
+  });
+
+  // 스토리지를 사용하지 않을 경우
+  // const useUserStore = create<UserStoreState>(UserStore);
+
+  // 스토리지를 사용할 경우 (sessionStorage에 저장)
+  const useUserStore = create<UserStoreState>()(
+    persist(UserStore, {
+      name: 'userStore',
+      storage: createJSONStorage(() => sessionStorage) // 기본은 localStorage
+    })
+  );
+
+  export default useUserStore;
+  ```
+
+### 3.2.2 로그인 완료 후 토큰 저장
+* src/pages/user/Login.tsx
+  - Zustand store의 setUser 꺼내기
+    ```tsx
+    import useUserStore from "@/zustand/userStore";
+    ...
+    function Login() {
+      const setUser = useUserStore(store => store.setUser);
+      ...
+    }
+    
+    ```
+
+  - 로그인 성공 후 호출되는 onSuccess에서 setUser 호출
+    ```tsx
+    onSuccess: (data) => {
+      const user = data.item;
+      setUser({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        token: user.token,
+      });
+      alert(data.item.name + '님, 로그인 되었습니다.');
+      navigate(`/`);
+    },
+    ```
+
+### 3.2.3 axios 요청 헤더에 Authorization 추가
+* src/utils/axiosInstance.ts
+  - axios 요청 인터셉터에 추가
+    ```ts
+    import useUserStore from "@/zustand/userStore";
+    ...
+    instance.interceptors.request.use((config) => {
+      const user = useUserStore.getState().user;
+      if(user){
+        config.headers.Authorization = `Bearer ${ user.token?.accessToken }`;
+      }
+      ......
+    });
+    ```
+
+### 3.2.4 로그인 된 사용자만 접근할 수 있는 페이지 설정
+#### src/components/ProtectedRoute.tsx 작성
+```tsx
+import { Navigate, useLocation } from "react-router";
+import useUserStore from "@/zustand/userStore";
+
+// 로그인이 필요한 페이지를 보호하는 컴포넌트
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user } = useUserStore();
+  const location = useLocation();
+
+  // 로그인하지 않은 경우 로그인 페이지로 리다이렉트
+  if (!user) {
+    // 현재 경로를 state로 전달하여 로그인 후 돌아올 수 있도록 함
+    return <Navigate to="/user/login" state={{ from: location.pathname }} replace />;
+  }
+
+  return <>{children}</>;
+}
+
+export default ProtectedRoute;
+```
+
+#### src/routes.tsx 수정
+* `<New>`, `<Edit>` 컴포넌트에 `<ProtectedRoute>` 적용
+  ```tsx
+  ...
+  { 
+    path: ":type/new", 
+    element: (
+      <ProtectedRoute>
+        <New />
+      </ProtectedRoute>
+    )
+  },
+  ...
+  { 
+    path: ":type/:_id/edit", 
+    element: (
+      <ProtectedRoute>
+        <Edit />
+      </ProtectedRoute>
+    )
+  },
+  ...
+  ```
+
+#### 로그인 후 페이지 이동
+* 로그인 후에 이전 페이지로 이동하도록 구현
+* src/pages/user/Login.tsx
+  ```tsx
+  const location = useLocation();
+  const { mutate } = useMutation<UserCreateRes, AxiosError<ErrorRes>, FormData>({
+    ...
+    onSuccess: (data) => {
+      ...
+      alert(data.item.name + '님, 로그인 되었습니다.');
+      navigate(location.state?.from || `/`, { replace: true });
+    },
+    ...
+  });
+  ```
+
+### 3.2.5 로그인 상태에 따른 조건부 렌더링
+* 로그인된 사용자에게는 사용자 정보를 보여주고 로그인되지 않은 사용자에게는 로그인 버튼과 회원가입 버튼을 보여줌
+
+#### src/components/layout/Header.tsx
+- user 꺼내기
+  ```ts
+  import useUserStore from "@/zustand/userStore";
+  ...
+  function Header() {
+    const { user } = useUserStore();
+    ......
+  }
+  ```
+
+- 조건부 렌더링
+  ```tsx
+  { user ? (
+    <form action="/">
+      <p className="flex items-center">
+        <img 
+          className="w-8 rounded-full mr-2" 
+          src={ user.image || '/images/favicon.svg' }
+          alt={`${ user.name } 프로필 이미지`} />
+        { user.name }님
+        <button type="submit" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그아웃</button>
+      </p>
+    </form>
+  ) : (
+    <div className="flex justify-end">
+      <Link to="/user/login" className="bg-orange-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그인</Link>
+      <Link to="/user/signup" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">회원가입</Link>
+    </div>
+  ) }
+  ```
+
+- 로그아웃 기능 추가
+  ```tsx
+  function Header() {
+    const { user, resetUser } = useUserStore();
+    const handleLogout = (event: React.FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      resetUser();
+    };
+  }
+  ```
+
+- form에 submit 이벤트 추가
+  ```tsx
+  <form onSubmit={ handleLogout }>
+  ```
+
+#### src/pages/board/List.tsx
+- 로그인 된 사용자만 게시글 작성이 가능하도록 `글작성` 버튼 조건부 렌더링
+  ```tsx
+  import useUserStore from "@/zustand/userStore";
+  ...
+  function List() {
+    const { user } = useUserStore();
+    ...
+  }
+  ```
+
+  ```tsx
+  { user && 
+    <Link to={`/${type}/new`} className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">글작성</Link>
+  }
+  ```
+
+#### src/pages/board/Detail.tsx
+- 본인의 글에 대해서 수정, 삭제 버튼 노출
+  ```tsx
+  import useUserStore from "@/zustand/userStore";
+  ...
+  function Detail() {
+    const { user } = useUserStore();
+    ......
+  }
+  ```
+
+  ```tsx
+  { user && user?._id === post.user._id && (
+    <>
+      <Link to={`/${post.type}/${_id}/edit`} className="bg-gray-900 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">수정</Link>
+      <button type="submit" className="bg-red-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">삭제</button>
+    </>
+  ) }
+  ```
+
+- 테스트
+  - 내가 작성한 글 상세조회 화면에서 로그아웃하면 zustand 스토어의 user가 초기화 되고, 스토어를 구독중인 상세보기 화면이 리렌더링 되므로 수정, 삭제 버튼도 동시에 사라짐
+
+#### src/pages/board/CommentListItem.tsx
+- 로그인 한 사용자에게만 자신의 댓글 삭제 버튼 추가
+  ```tsx
+  import useUserStore from "@/zustand/userStore";
+  ...
+  function CommentListItem() {
+    const { user } = useUserStore();
+    ......
+  }
+  ```
+
+  ```tsx
+  { user && user?._id === reply.user._id && (
+    <form onSubmit={ onSubmit } className="inline ml-2">
+      <button type="submit" className="bg-red-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">삭제</button>
+    </form>
+  ) }
+  ```
+
+### 3.2.6 access token 만료시 처리
+* access token이 만료되면 refresh token을 이용해서 access token을 재발급
+
+#### axios 인터셉터 설정
+* src/utils/axiosInstance.ts
+  ```tsx
+  import useUserStore from "@/zustand/userStore";
+  import axios from "axios";
+  import router from "@/routes";
+
+  // API 서버 주소
+  const API_SERVER = 'https://fesp-api.koyeb.app/market';
+  // access token 재발급 URL
+  const REFRESH_URL = '/auth/refresh';
+
+  // Axios 인스턴스 생성 함수
+  export function getAxiosInstance() {
+    const instance = axios.create({
+      baseURL: API_SERVER,
+      timeout: 1000*15,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'Client-Id': 'openmarket',
+      }
+    });
+
+    // 요청 인터셉터 추가
+    instance.interceptors.request.use((config) => {
+      const { user } = useUserStore.getState();
+      if(user && config.url !== REFRESH_URL){
+        config.headers.Authorization = `Bearer ${ user.token?.accessToken }`;
+      }
+      config.params = {
+        // delay: 500,
+        ...config.params,
+      };
+      return config;
+    }, (error) => {
+      return Promise.reject(error);
+    });
+
+    // 응답 인터셉터 추가
+    instance.interceptors.response.use((response) => {
+      return response;
+    }, async (error) => {
+      console.error('에러 응답 인터셉터 호출', error);
+
+      const { user, setUser } = useUserStore.getState();
+      const { config, response } = error;
+
+      if(response?.status === 401){ // 인증 실패
+        if(config.url === REFRESH_URL){ // refresh token도 만료된 경우 로그인 페이지로
+          navigateLogin();
+        }else if(user){ // 로그인 했으나 access token이 만료된 경우 access token과 refresh token 재발급
+          // refresh 토큰으로 access token과 refresh token 재발급 요청
+          const { data: { accessToken, refreshToken } } = await instance.get(REFRESH_URL, {
+            headers: {
+              Authorization: `Bearer ${user.token?.refreshToken}`
+            }
+          });
+          setUser({ ...user, token: { accessToken, refreshToken } });
+          // 갱신된 accessToken으로 실패했던 요청을 다시 시도
+          config.headers.Authorization = `Bearer ${ accessToken }`;        
+          return axios(config);
+        }else{ // 로그인 안한 경우
+          navigateLogin();
+        }
+      }
+
+      return Promise.reject(error);
+    });
+
+    function navigateLogin(){
+      const gotoLogin = confirm('로그인 후 이용 가능합니다.\n로그인 페이지로 이동하시겠습니까?');
+      if(gotoLogin){
+        // state로 로그인 후에 돌아올 페이지 전달
+        router.navigate('/users/login', { state: { from: router.state.location.pathname } });
+      }
+    }
+
+    return instance;
+  }
+  ```
+
+## 3.3 다크 모드 적용
+### 3.3.1 Zustand store 설정
+#### src/zustand/themeStore.ts 생성
+```ts
+import { create, type StateCreator } from "zustand";
+import { persist } from 'zustand/middleware';
+
+// 다크 모드 테마를 관리하는 스토어의 상태 인터페이스
+interface ThemeStoreState {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+}
+
+// 다크 모드 테마를 관리하는 스토어 생성
+const ThemeStore: StateCreator<ThemeStoreState> = (set) => ({
+  isDarkMode: window.matchMedia('(prefers-color-scheme: dark)').matches ? true : false,
+  toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+});
+
+// 스토리지를 사용할 경우 (localStorage에 저장)
+const useThemeStore = create<ThemeStoreState>()(
+  persist(ThemeStore, {
+    name: 'themeStore',
+  })
+);
+
+export default useThemeStore;
+```
+
+### 3.3.2 ThemeButton 컴포넌트 작성
+#### src/components/ui/ThemeButton.tsx 작성
+- Header.tsx 에서 `<button>` 코드 복사
+- 현재 설정된 모드에 따라 sun, moon 이미지 hidden
+- onClick 이벤트 추가
+  ```tsx
+  import useThemeStore from "@/zustand/themeStore";
+
+  function ThemeButton() {
+    const { isDarkMode, toggleTheme } = useThemeStore();
+
+    const sun = isDarkMode ? '' : 'hidden';
+    const moon = isDarkMode ? 'hidden' : '';
+
+    return (
+      <button
+        type="button"
+        data-toggle-dark="dark"
+        onClick={ toggleTheme }
+        className="ml-4 flex items-center w-8 h-8 justify-center text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg toggle-dark-state-example hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500 dark:bg-gray-800 focus:outline-none dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
+      >
+        <svg
+          data-toggle-icon="moon"
+          className={`w-3.5 h-3.5 ${moon}`}
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 18 20"
+        >
+          <path d="M17.8 13.75a1 1 0 0 0-.859-.5A7.488 7.488 0 0 1 10.52 2a1 1 0 0 0 0-.969A1.035 1.035 0 0 0 9.687.5h-.113a9.5 9.5 0 1 0 8.222 14.247 1 1 0 0 0 .004-.997Z"></path>
+        </svg>
+        <svg
+          data-toggle-icon="sun"
+          className={`w-3.5 h-3.5 ${sun}`}
+          aria-hidden="true"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path d="M10 15a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-11a1 1 0 0 0 1-1V1a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1Zm0 12a1 1 0 0 0-1 1v2a1 1 0 1 0 2 0v-2a1 1 0 0 0-1-1ZM4.343 5.757a1 1 0 0 0 1.414-1.414L4.343 2.929a1 1 0 0 0-1.414 1.414l1.414 1.414Zm11.314 8.486a1 1 0 0 0-1.414 1.414l1.414 1.414a1 1 0 0 0 1.414-1.414l-1.414-1.414ZM4 10a1 1 0 0 0-1-1H1a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1Zm15-1h-2a1 1 0 1 0 0 2h2a1 1 0 0 0 0-2ZM4.343 14.243l-1.414 1.414a1 1 0 1 0 1.414 1.414l1.414-1.414a1 1 0 0 0-1.414-1.414ZM14.95 6.05a1 1 0 0 0 .707-.293l1.414-1.414a1 1 0 1 0-1.414-1.414l-1.414 1.414a1 1 0 0 0 .707 1.707Z"></path>
+        </svg>
+        <span className="sr-only">Toggle dark/light mode</span>
+      </button>
+    );
+  }
+
+  export default ThemeButton;
+  ```
+
+#### Header.tsx
+- `<ThemeButton>` 적용
+  ```tsx
+  import ThemeButton from "@/components/ui/ThemeButton";
+  ...
+  <header>
+    <nav>      
+      ......
+      <div>
+        { user ? (
+          ......
+        ) : (
+          ......
+        ) }
+
+        <ThemeButton />
+
+      </div>
+    </nav>
+  </header>
+  ```
+
+### 3.3.3 Tailwind CSS에 적용
+* 참고: https://tailwindcss.com/docs/dark-mode
+* 클래스명에 접두사로 `dark:`를 붙이면 다크 모드에서 적용되는 스타일을 지정할 수 있음
+* 예시
+  ```tsx
+  <header className="px-8 min-w-80 bg-slate-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 transition-color duration-500 ease-in-out">
+  ```
+
+#### Tailwind CSS의 다크 모드 전략
+
+##### media 전략
+- 기본값
+- CSS 미디어 기능 `prefers-color-scheme`를 이용해서 운영체제 설정을 따름
+
+##### selector 전략
+- 운영체제 설정에 의존하지 않고 수동으로 다크 모드 전환
+- src/index.css에 추가
+  ```ts
+  ...
+  @custom-variant dark (&:where(.dark, .dark *));
+  ```
+
+  - `dark` 클래스가 적용되어 있는 요소와 그 하위 요소에는 일반 클래스 대신 `dark:` 접두사가 붙어있는 클래스가 적용됨
+    - `<header>` 예시
+      + `bg-slate-100` 대신 `dark:bg-gray-600` 적용
+      + `text-gray-800` 대신 `dark:text-gray-200` 적용
+
+### 3.3.4 루트 엘리먼트에 dark 클래스 설정
+#### src/App.tsx
+```tsx
+import useThemeStore from '@/zustand/themeStore';
+import { useEffect } from 'react';
+...
+function App() {
+  const { isDarkMode } = useThemeStore();
+  
+  useEffect(() => {
+    // 다크 모드에 따라 .dark 클래스 추가/제거
+    if(isDarkMode){
+      document.documentElement.classList.add('dark');
+    }else{
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+  ......
+}
+```

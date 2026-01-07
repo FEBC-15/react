@@ -7,6 +7,7 @@ import ErrorPage from "@/pages/ErrorPage";
 import MainPage from "@/pages/index";
 import Login from "@/pages/user/Login";
 import Signup from "@/pages/user/Signup";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 import { createBrowserRouter } from "react-router";
 
@@ -26,7 +27,11 @@ const router = createBrowserRouter([
       },
       { 
         path: ":type/new", 
-        element: <New /> 
+        element: (
+          <ProtectedRoute>
+            <New />
+          </ProtectedRoute>
+        )
       },
       { 
         path: ":type/:_id", 
@@ -34,7 +39,11 @@ const router = createBrowserRouter([
       },
       { 
         path: ":type/:_id/edit", 
-        element: <Edit /> 
+        element: (
+          <ProtectedRoute>
+            <Edit />
+          </ProtectedRoute>
+        )
       },
       { 
         path: "user/login", 
