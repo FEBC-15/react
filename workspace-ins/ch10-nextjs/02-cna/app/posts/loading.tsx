@@ -1,5 +1,7 @@
+import { RotateLoader } from "react-spinners";
+
 export default function PostLoading(){
   return (
-    <p>게시물 로딩중...</p>
+    <p><RotateLoader /></p>
   );
 }
