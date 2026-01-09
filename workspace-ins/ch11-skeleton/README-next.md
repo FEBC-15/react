@@ -616,7 +616,7 @@ export default async function InfoPage() {
 
   ```sh
   # lion-board-next-01/.next와 node_modules 폴더 삭제
-  rm -rf lion-board-next-01/.next lion-board-next-01/node_modules
+  rm -rf lion-board-next-01/.next lion-board-next-01/node_modules && echo "삭제 완료"
   # lion-board-next-01 폴더를 복사해서 lion-board-next-02 폴더 생성
   cp -r lion-board-next-01 lion-board-next-02 && echo "복사 완료"
   # 복사한 폴더로 이동
