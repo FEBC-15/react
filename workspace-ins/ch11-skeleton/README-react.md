@@ -2330,6 +2330,9 @@ function App() {
 }
 ```
 
+## 3.4 Step 03 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-react-03
+
 # 4 Step 04 - 배포 및 최적화
 * 배포
 * 최적화
@@ -2486,6 +2489,8 @@ const API_SERVER = import.meta.env.VITE_API_SERVER;
   - react 레포지토리가 보이지 않는다면 Configure the Netlify app onGitHub 링크를 선택해서 레포지토리 추가
   - Project name: url로 사용될 이름 지정(예시, `lion-board-react`)
   - Base directory: `workspace/ch11-skeleton/lion-board-react-04`
+  - Build command: `npm run build`
+  - Publish directory: `workspace/ch11-skeleton/lion-board-react-04/dist`
   - Environment variable > Add environment variables > Import environment variables
     + .env 파일 내용 전체를 복사해서 붙여넣기
     + `VITE_API_SERVER=https://fesp-api.koyeb.app/market`
@@ -2731,3 +2736,9 @@ export default ErrorPage;
 
 ##### 에러 테스트
 * http://localhost:5173/a/b/c 접속해서 404 에러 확인
+
+
+## 4.5 Step 04 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-react-04
+
+* 완성본 배포 주소: <https://lion-board-react.netlify.app>
