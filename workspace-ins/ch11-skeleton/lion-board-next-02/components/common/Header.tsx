@@ -23,7 +23,7 @@ export default function Header() {
 
           <form action="/">
             <p className="flex items-center">
-              <Image 
+              <Image
                 className="w-8 rounded-full mr-2" 
                 src="https://res.cloudinary.com/ddedslqvv/image/upload/v1767106161/user-jayg_i3nudk.webp"
                 alt="용쌤 프로필 이미지"

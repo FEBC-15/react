@@ -13,7 +13,7 @@ export default function RootLayout({
         <meta charSet="UTF-8" />
         <link rel="icon" type="image/x-icon" href="/images/favicon.svg" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>멋사 게시판 - Lion Board</title>
+        <title>멋사 게시판 - 라이언 보드</title>
 
         <meta name="description" content="다양한 주제의 커뮤니티와 활발한 소통을 위한 플랫폼입니다. 관심사에 따라 참여하고, 의견을 나누세요." />
         <meta name="keywords" content="커뮤니티, 소통, 포럼, 관심사, 온라인 모임, 커뮤니티 서비스" />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -6,9 +7,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: '로그인 - 라이언 보드',
     description: '로그인 페이지',
-    url: '/user/login'
+    url: '/login'
   }
-}
+};
 
 export default async function LoginPage() {
   return (

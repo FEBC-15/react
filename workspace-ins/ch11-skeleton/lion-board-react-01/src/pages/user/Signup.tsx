@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 function Signup() {
   return (
-    <main className="min-w-80 flex-grow flex items-center justify-center py-8">
+    <main className="min-w-80 flex grow items-center justify-center py-8">
       <div className="p-8 border border-gray-200 rounded-lg w-full max-w-md dark:bg-gray-600 dark:border-0">
         <div className="text-center py-4">
           <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-200">회원 가입</h2>

@@ -1,19 +1,17 @@
 import Link from "next/link";
 import { Metadata } from "next";
 
-export async function generateMetadata(): Promise<Metadata>{
-  return {
+export const metadata: Metadata = {
+  title: `회원가입 - 라이언 보드`,
+  description: `무료 회원 가입후 라이언 보드의 모든 서비스를 이용하세요.`,
+  openGraph: {
     title: `회원가입 - 라이언 보드`,
     description: `무료 회원 가입후 라이언 보드의 모든 서비스를 이용하세요.`,
-    openGraph: {
-      title: `회원가입 - 라이언 보드`,
-      description: `무료 회원 가입후 라이언 보드의 모든 서비스를 이용하세요.`,
-      url: `/signup`,
-      images: {
-        url: '/images/front-end.png'
-      }
+    url: `/signup`,
+    images: {
+      url: '/images/front-end.png'
     }
-  };
+  }
 }
 
 export default async function SignupPage() {

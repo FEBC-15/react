@@ -2,7 +2,7 @@ import CommentList from "@/app/[boardType]/[_id]/CommentList";
 import Link from "next/link";
 import { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata>{
+export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata> {
   const { boardType, _id } = await params;
   return {
     title: `${boardType} - React란?`,
@@ -18,8 +18,9 @@ export async function generateMetadata({ params }: { params: Promise<{ boardType
   };
 }
 
-export default async function InfoPage ({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
+export default async function InfoPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
   const { boardType, _id } = await params;
+
   return (
     <main className="flex-1 container mx-auto mt-4 px-4">
 
