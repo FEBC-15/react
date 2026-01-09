@@ -612,14 +612,17 @@ export default async function InfoPage() {
 # 2 Step 02 - 라우트 정의
 
 * workspace/ch11-skeleton 폴더에서 실행
-  - 복사하는데 시간이 오래 걸리니 `복사 완료` 메시지가 출력될 때까지 대기
 
-    ```sh
-    # lion-board-next-01/.next 폴더 삭제
-    rm -rf lion-board-next-01/.next
-    # lion-board-next-01 폴더를 복사해서 lion-board-next-02 폴더 생성
-    cp -r lion-board-next-01 lion-board-next-02 && echo "복사 완료"
-    ```
+  ```sh
+  # lion-board-next-01/.next와 node_modules 폴더 삭제
+  rm -rf lion-board-next-01/.next lion-board-next-01/node_modules
+  # lion-board-next-01 폴더를 복사해서 lion-board-next-02 폴더 생성
+  cp -r lion-board-next-01 lion-board-next-02 && echo "복사 완료"
+  # 복사한 폴더로 이동
+  cd lion-board-next-02
+  # 패키지 설치
+  npm i
+  ```
 
 * lion-board-next-02/components/common/Header.tsx 파일 수정
   - `라이언 보드 v.01` -> `라이언 보드 v.02`
