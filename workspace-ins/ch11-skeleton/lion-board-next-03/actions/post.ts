@@ -10,15 +10,15 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID || '';
 type ActionState = ErrorRes | null;
 
 /**
- * 게시글을 생성하는 함수
- * @param {ActionState} prevState - 이전 상태(사용하지 않음)
- * @param {FormData} formData - 게시글 정보를 담은 FormData 객체
- * @returns {Promise<ActionState>} - 생성 결과 응답 객체
- * @throws {Error} - 네트워크 오류 발생 시
- * @description
- * 게시글을 생성하고, 성공 시 해당 게시판으로 리다이렉트합니다.
- * 실패 시 에러 메시지를 반환합니다.
- */
+* 게시글 등록
+* @param {ActionState} prevState - 이전 상태(사용하지 않음)
+* @param {FormData} formData - 게시글 정보를 담은 FormData 객체
+* @returns {Promise<ActionState>} - 생성 결과 응답 객체
+* @throws {Error} - 네트워크 오류 발생 시
+* @description
+* 게시글을 생성하고, 성공 시 해당 게시판으로 리다이렉트
+* 실패 시 에러 메시지를 반환
+*/
 export async function createPost(prevState: ActionState, formData: FormData): Promise<ActionState> {
   // FormData를 일반 Object로 변환
   const body = Object.fromEntries(formData.entries());
@@ -55,13 +55,13 @@ export async function createPost(prevState: ActionState, formData: FormData): Pr
 
 type ReplyActionState = ReplyInfoRes | ErrorRes | null;
 /**
- * 댓글을 생성하는 함수
- * @param {ReplyInfoRes | null} prevState - 이전 상태(사용하지 않음)
- * @param {FormData} formData - 댓글 정보를 담은 FormData 객체
- * @returns {Promise<ReplyInfoRes | ErrorRes>} - 생성 결과 응답 객체
- * @description
- * 댓글을 생성하고, 성공 시 해당 게시글의 댓글 목록을 갱신합니다.
- */
+* 댓글 등록
+* @param {ReplyInfoRes | null} prevState - 이전 상태(사용하지 않음)
+* @param {FormData} formData - 댓글 정보를 담은 FormData 객체
+* @returns {Promise<ReplyInfoRes | ErrorRes>} - 생성 결과 응답 객체
+* @description
+* 댓글을 생성하고, 성공 시 해당 게시글의 댓글 목록을 갱신
+*/
 export async function createReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
   const body = Object.fromEntries(formData.entries());
 

@@ -9,13 +9,13 @@ const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID || '';
 type UserActionState = UserInfoRes | ErrorRes | null;
 
 /**
- * 회원가입 함수
- * @param state - 이전 상태(사용하지 않음)
- * @param formData - 회원가입 폼 데이터(FormData 객체)
- * @returns 회원가입 결과 응답 객체
- * @description
- * 첨부파일(프로필 이미지)이 있으면 파일 업로드 후, 회원가입 API를 호출합니다.
- */
+* 회원가입
+* @param state - 이전 상태(사용하지 않음)
+* @param formData - 회원가입 폼 데이터(FormData 객체)
+* @returns 회원가입 결과 응답 객체
+* @description
+* 첨부파일(프로필 이미지)이 있으면 파일 업로드 후 받은 파일경로를 회원 정보에 추가해서 회원가입 API를 호출
+*/
 export async function createUser(state: UserActionState, formData: FormData): Promise<UserActionState> {
   let res: Response;
   let data: UserInfoRes | ErrorRes;
@@ -65,13 +65,13 @@ export async function createUser(state: UserActionState, formData: FormData): Pr
 }
 
 /**
- * 로그인 함수
- * @param state - 이전 상태(사용하지 않음)
- * @param formData - 로그인 폼 데이터(FormData 객체)
- * @returns 로그인 결과 응답 객체
- * @description
- * 이메일/비밀번호로 로그인 API를 호출합니다.
- */
+* 로그인
+* @param state - 이전 상태(사용하지 않음)
+* @param formData - 로그인 폼 데이터(FormData 객체)
+* @returns 로그인 결과 응답 객체
+* @description
+* 이메일/비밀번호로 로그인 API 호출
+*/
 export async function login(state: UserActionState, formData: FormData): Promise<UserActionState> {
   const body = Object.fromEntries(formData.entries());
 

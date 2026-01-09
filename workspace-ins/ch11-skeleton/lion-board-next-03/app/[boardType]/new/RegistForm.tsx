@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 export default function RegistForm({ boardType }: { boardType: string }) {
-  const [ state, formAction, isPending ] = useActionState(createPost, null);
+  const [state, formAction, isPending] = useActionState(createPost, null);
   
   return (
-    <form action={ formAction }>
-      <input type="hidden" name="type" value={ boardType } />
+    <form action={formAction}>
+      <input type="hidden" name="type" value={boardType} />
       <div className="my-4">
         <label className="block text-lg content-center" htmlFor="title">제목</label>
         <input
@@ -19,7 +19,7 @@ export default function RegistForm({ boardType }: { boardType: string }) {
           className="w-full py-2 px-4 border rounded-md dark:bg-gray-700 border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
           name="title"
         />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ state?.ok === 0 && state.errors?.title?.msg }</p>
+        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{state?.ok === 0 && state.errors?.title?.msg}</p>
       </div>
       <div className="my-4">
         <label className="block text-lg content-center" htmlFor="content">내용</label>
@@ -30,13 +30,13 @@ export default function RegistForm({ boardType }: { boardType: string }) {
           className="w-full p-4 text-sm border rounded-lg border-gray-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
           name="content"
         ></textarea>
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ state?.ok === 0 && state.errors?.content?.msg }</p>
+        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{state?.ok === 0 && state.errors?.content?.msg}</p>
       </div>
       <hr />
       <div className="flex justify-end my-6">
-        <button type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded" disabled={ isPending }>등록</button>
+        <button disabled={isPending} type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">등록</button>
         <Link href={`/${boardType}`} className="bg-gray-900 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">취소</Link>
       </div>
     </form>
-  )
+  );
 }

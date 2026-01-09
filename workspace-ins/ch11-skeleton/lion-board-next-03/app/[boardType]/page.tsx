@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { getPosts } from "@/lib/post";
 
-export async function generateMetadata({ params }: { params: Promise<{ boardType: string }> }): Promise<Metadata>{
+export async function generateMetadata({ params }: { params: Promise<{ boardType: string }> }): Promise<Metadata> {
   const { boardType } = await params;
   return {
     title: `${boardType} - 라이언 보드`,
@@ -21,6 +21,8 @@ export async function generateMetadata({ params }: { params: Promise<{ boardType
 
 export default async function ListPage({ params }: { params: Promise<{ boardType: string }> }) {
   const { boardType } = await params;
+  
+  // 게시판 타입에 따른 제목 설정
   let boardTitle = '';
   switch (boardType) {
     case 'info':
@@ -33,13 +35,13 @@ export default async function ListPage({ params }: { params: Promise<{ boardType
       boardTitle = '질문 게시판';
       break;
   }
-
+  
   const res = await getPosts(boardType);
 
   return (
     <main className="flex-1 min-w-80 p-10">
       <div className="text-center py-4">
-        <h2 className="pb-4 text-2xl font-bold text-gray-700 dark:text-gray-200">{ boardTitle }</h2>
+        <h2 className="pb-4 text-2xl font-bold text-gray-700 dark:text-gray-200">{boardTitle}</h2>
       </div>
       <div className="flex justify-end mr-4">
         
@@ -75,12 +77,17 @@ export default async function ListPage({ params }: { params: Promise<{ boardType
             </tr>
           </thead>
           <tbody>
-            { res.ok ? 
+            {res.ok ? (
               res.item.map((post) => (
                 <ListItem key={post._id} boardType={boardType} post={post} />
-              )) : 
-              <p>{ res.message }</p>
-            }
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <p className="text-red-500 dark:text-red-400">{res.message}</p>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
         <hr />

@@ -1,17 +1,16 @@
 'use client';
 
 import { login } from "@/actions/user";
-import Link from "next/link";
+import { useActionState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
+import Link from "next/link";
 import useUserStore from "@/zustand/userStore";
 
 export default function LoginForm() {
-  const [ userState, formAction, isPending ] = useActionState(login, null);
-
+  const [userState, formAction, isPending] = useActionState(login, null);
   const router = useRouter();
   const redirect = useSearchParams().get('redirect');
-
   const setUser = useUserStore(state => state.setUser);
 
   useEffect(() => {
@@ -33,17 +32,19 @@ export default function LoginForm() {
 
   return (
     <>
-      { redirect && ( // 특정 페이지에서 끌려 왔을 경우
+      {redirect && ( // 특정 페이지에서 끌려 왔을 경우
         <div className="text-center py-4">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">로그인이 필요한 서비스입니다.</h3>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+            로그인이 필요한 서비스입니다.
+          </h3>
         </div>
-      ) }
-      { userState?.ok === 0 && ( // 로그인 실패 메시지 출력
+      )}
+      {userState?.ok === 0 && ( // 로그인 실패 메시지 출력
         <div className="text-center py-4">
           <p className="text-red-500 dark:text-red-400">{userState.message}</p>
         </div>
-      ) }
-      <form action={ formAction }>
+      )}
+      <form action={formAction}>
         <div className="mb-4">
           <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="email">이메일</label>
           <input
@@ -55,7 +56,7 @@ export default function LoginForm() {
             name="email"
             defaultValue="u1@market.com"
           />
-          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ userState?.ok === 0 && userState.errors?.email?.msg }</p>
+          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{userState?.ok === 0 && userState.errors?.email?.msg}</p>
         </div>
         <div className="mb-4">
           <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="password">비밀번호</label>
@@ -68,14 +69,15 @@ export default function LoginForm() {
             name="password"
             defaultValue="11111111"
           />
-          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ userState?.ok === 0 && userState.errors?.password?.msg }</p>
+          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{userState?.ok === 0 && userState.errors?.password?.msg}</p>
           <Link href="#" className="block mt-6 ml-auto text-gray-500 text-sm dark:text-gray-300 hover:underline">비밀번호를 잊으셨나요?</Link>
         </div>
         <div className="mt-10 flex justify-center items-center">
-          <button disabled={ isPending } type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그인</button>
+          <button disabled={isPending} type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그인</button>
           <Link href="/signup" className="ml-8 text-gray-800 hover:underline">회원가입</Link>
         </div>
       </form>
     </>
+    
   );
 }

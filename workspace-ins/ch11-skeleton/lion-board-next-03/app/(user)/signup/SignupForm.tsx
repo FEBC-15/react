@@ -2,11 +2,12 @@
 
 import { createUser } from "@/actions/user";
 import Link from "next/link";
+import { useActionState } from "react";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+import { useEffect } from "react";
 
 export default function SignupForm() {
-  const [ state, formAction, isPending ] = useActionState(createUser, null);
+  const [state, formAction, isPending] = useActionState(createUser, null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,9 +18,8 @@ export default function SignupForm() {
       alert(state?.message);
     }
   }, [state, router]);
-
   return (
-    <form action={ formAction }>
+    <form action={formAction}>
       <input type="hidden" name="type" value="user" />
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="name">이름</label>
@@ -31,7 +31,7 @@ export default function SignupForm() {
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
           name="name"
         />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ state?.ok === 0 && state.errors?.name?.msg }</p>
+        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{state?.ok === 0 && state.errors?.name?.msg}</p>
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="email">이메일</label>
@@ -43,7 +43,7 @@ export default function SignupForm() {
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
           name="email"
         />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ state?.ok === 0 && state.errors?.email?.msg }</p>
+        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{state?.ok === 0 && state.errors?.email?.msg}</p>
       </div>
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="password">비밀번호</label>
@@ -55,7 +55,7 @@ export default function SignupForm() {
           className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
           name="password"
         />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{ state?.ok === 0 && state.errors?.password?.msg }</p>
+        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">{state?.ok === 0 && state.errors?.password?.msg}</p>
       </div>
 
       <div className="mb-4">
@@ -71,7 +71,7 @@ export default function SignupForm() {
       </div>
 
       <div className="mt-10 flex justify-center items-center">
-        <button disabled={ isPending } type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">회원가입</button>
+        <button disabled={isPending} type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">회원가입</button>
         <Link href="/" className="bg-gray-900 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">취소</Link>
       </div>
     </form>

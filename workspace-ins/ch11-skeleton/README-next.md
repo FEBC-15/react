@@ -2513,11 +2513,7 @@ lion-board-next-02/
   export default function SignupPage() {
     return (
       ...
-      <section className="mb-8 p-4">
-        <form action="/">
-        ...
-        </form>
-      </section>
+      <form action="/">...</form>
       ...
     );
   }
@@ -2530,9 +2526,7 @@ lion-board-next-02/
   export default function SignupPage() {
     return (
       ...
-      <section className="mb-8 p-4">
-        <SignupForm />
-      </section>
+      <SignupForm />
       ...
     );
   }
@@ -2546,19 +2540,13 @@ lion-board-next-02/
 * `app/(user)/signup/SignupForm.tsx` 파일 열기
 * 잘라낸 `<form>...</form>` 코드를 SignupForm의 return 문에 추가
 
-**2단계: import 추가**
-* `useRouter`, `useEffect` import 추가
-
-  ```tsx
-  import { useRouter } from "next/navigation";
-  import { useEffect } from "react";
-  ```
-
 **3단계: action 수정**
 * `action="/"` → `action={formAction}`
 
 **4단계: hidden 필드 추가**
 * `<form>` 태그 바로 아래에 사용자 타입을 전달하는 hidden 필드 추가
+  - type: user일 경우 일반 회원
+  - type: seller일 경우 판매 회원
 
   ```tsx
   <form action={formAction}>
@@ -2579,136 +2567,69 @@ lion-board-next-02/
 
   **변경 후:**
   ```tsx
-  <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-    {state?.ok === 0 && state.errors?.name?.msg}
-  </p>
-  <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-    {state?.ok === 0 && state.errors?.email?.msg}
-  </p>
-  <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-    {state?.ok === 0 && state.errors?.password?.msg}
-  </p>
+  <p>{state?.ok === 0 && state.errors?.name?.msg}</p>
+  <p>{state?.ok === 0 && state.errors?.email?.msg}</p>
+  <p>{state?.ok === 0 && state.errors?.password?.msg}</p>
   ```
 
 **6단계: 중복 클릭 방지**
 * 버튼에 `disabled={isPending}` 추가
 
+  **변경 전:**
   ```tsx
-  <button disabled={isPending} type="submit" className="...">
-    회원가입
-  </button>
+  <button>회원가입</button>
+  ```
+
+  **변경 후:**
+  ```tsx
+  <button disabled={isPending}>회원가입</button>
   ```
 
 **7단계: 회원 가입 결과 처리**
 * `useRouter` 훅 사용
 * `useEffect`로 회원 가입 성공/실패 처리
 
+  **변경 전:**
   ```tsx
-  const router = useRouter();
-
-  useEffect(() => {
-    if(state?.ok){
-      alert('회원 가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-      router.replace('/login');
-    }else if(state?.ok === 0 && !state?.errors){ // 입력값 검증에러가 아닌 경우
-      alert(state?.message);
-    }
-  }, [state, router]);
+  ...
+  export default function SignupForm() {
+    const [state, formAction, isPending] = useActionState(createUser, null);
+    
+    return (
+      ...
+    )
+  }
   ```
 
-**최종 코드:**
-```tsx
-'use client';
+  **변경 후:**
+  ```tsx
+  ...
+  import { useRouter } from "next/navigation";
+  import { useEffect } from "react";
 
-import { createUser } from "@/actions/user";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useActionState, useEffect } from "react";
+  export default function SignupForm() {
+    const [state, formAction, isPending] = useActionState(createUser, null);
+    const router = useRouter();
 
-export default function SignupForm() {
-  const [state, formAction, isPending] = useActionState(createUser, null);
-  const router = useRouter();
+    useEffect(() => {
+      if(state?.ok){
+        alert('회원 가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
+        router.replace('/login');
+      }else if(state?.ok === 0 && !state?.errors){ // 입력값 검증에러가 아닌 경우
+        alert(state?.message);
+      }
+    }, [state, router]);
 
-  useEffect(() => {
-    if(state?.ok){
-      alert('회원 가입이 완료되었습니다. 로그인 페이지로 이동합니다.');
-      router.replace('/login');
-    }else if(state?.ok === 0 && !state?.errors){ // 입력값 검증에러가 아닌 경우
-      alert(state?.message);
-    }
-  }, [state, router]);
-
-  return (
-    <form action={formAction}>
-      <input type="hidden" name="type" value="user" />
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="name">이름</label>
-        <input
-          type="text"
-          id="name"
-          autoComplete="name"
-          placeholder="이름을 입력하세요"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
-          name="name"
-        />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-          {state?.ok === 0 && state.errors?.name?.msg}
-        </p>
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="email">이메일</label>
-        <input
-          type="email"
-          id="email"
-          autoComplete="username"
-          placeholder="이메일을 입력하세요"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
-          name="email"
-        />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-          {state?.ok === 0 && state.errors?.email?.msg}
-        </p>
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="password">비밀번호</label>
-        <input
-          type="password"
-          id="password"
-          autoComplete="new-password"
-          placeholder="비밀번호를 입력하세요"
-          className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-orange-400 dark:bg-gray-700"
-          name="password"
-        />
-        <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-          {state?.ok === 0 && state.errors?.password?.msg}
-        </p>
-      </div>
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200 mb-2" htmlFor="attach">프로필 이미지</label>
-        <input
-          type="file"
-          id="attach"
-          accept="image/*"
-          placeholder="이미지를 선택하세요"
-          className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700"
-          name="attach"
-        />
-      </div>
-      <div className="mt-10 flex justify-center items-center">
-        <button disabled={isPending} type="submit" className="bg-orange-500 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">회원가입</button>
-        <Link href="/" className="bg-gray-900 py-1 px-4 text-base text-white font-semibold ml-2 hover:bg-amber-400 rounded">취소</Link>
-      </div>
-    </form>
-  );
-}
-```
+    return (
+      ...
+    )
+  ```
 
 **테스트**
 * 회원 가입 페이지 접속
 * 이름, 이메일, 비밀번호 입력 후 회원 가입 버튼 클릭
 * 회원 가입 성공 시 로그인 페이지로 이동하는지 확인
 * 빈 필드로 등록 시 에러 메시지가 표시되는지 확인
-* 프로필 이미지 업로드가 정상 작동하는지 확인
 
 ## 3.9 로그인 화면
 
@@ -2756,11 +2677,7 @@ export default function SignupForm() {
   export default function LoginPage() {
     return (
       ...
-      <section className="mb-8 p-4">
-        <form action="/">
-        ...
-        </form>
-      </section>
+      <form action="/">...</form>
       ...
     );
   }
@@ -2769,13 +2686,11 @@ export default function SignupForm() {
   **변경 후:**
   ```tsx
   import LoginForm from "@/app/(user)/login/LoginForm";
-
+  ...
   export default function LoginPage() {
     return (
       ...
-      <section className="mb-8 p-4">
-        <LoginForm />
-      </section>
+      <LoginForm />
       ...
     );
   }
@@ -2811,21 +2726,21 @@ export default function SignupForm() {
 
   **변경 후:**
   ```tsx
-  <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-    {userState?.ok === 0 && userState.errors?.email?.msg}
-  </p>
-  <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
-    {userState?.ok === 0 && userState.errors?.password?.msg}
-  </p>
+  <p>{userState?.ok === 0 && userState.errors?.email?.msg}</p>
+  <p>{userState?.ok === 0 && userState.errors?.password?.msg}</p>
   ```
 
 **5단계: 중복 클릭 방지**
 * 버튼에 `disabled={isPending}` 추가
 
+  **변경 전:**
   ```tsx
-  <button disabled={isPending} type="submit" className="...">
-    로그인
-  </button>
+  <button>로그인</button>
+  ```
+
+  **변경 후:**
+  ```tsx
+  <button disabled={isPending}>로그인</button>
   ```
 
 **6단계: 로그인 결과 처리**
@@ -2875,11 +2790,10 @@ export default function SignupForm() {
 **테스트**
 * 로그인 페이지 접속
 * 이메일과 비밀번호 입력 후 로그인 버튼 클릭
-* 로그인 성공 시 메인 페이지로 이동하는지 확인
-* 잘못된 이메일/비밀번호로 로그인 시 에러 메시지가 표시되는지 확인
-* 테스트 계정으로 로그인:
   - u1@market.com / 11111111
   - s1@market.com / 11111111
+* 로그인 성공 시 메인 페이지로 이동하는지 확인
+* 잘못된 이메일/비밀번호로 로그인 시 에러 메시지가 표시되는지 확인
 
 ## 3.10 로그인 상태 유지
 
@@ -2900,7 +2814,7 @@ export default function SignupForm() {
 **작업 내용**: 사용자 정보를 관리하는 Zustand 스토어 생성
 
 **1단계: 파일 생성**
-* `zustand/userStore.ts` 파일 생성
+* `lion-board-next-03/zustand/userStore.ts` 파일 생성
 
 **2단계: 스토어 작성**
 
@@ -2952,9 +2866,6 @@ export default function SignupForm() {
 
   ```tsx
   export default function LoginForm() {
-    const [userState, formAction, isPending] = useActionState(login, null);
-    const router = useRouter();
-    const redirect = useSearchParams().get('redirect');
     const setUser = useUserStore(state => state.setUser);
     ...
   }
@@ -2994,10 +2905,6 @@ export default function SignupForm() {
   }, [userState, router, redirect, setUser]);
   ```
 
-**테스트**
-* 로그인 성공 후 userStore에 사용자 정보가 저장되는지 확인
-* 브라우저 개발자 도구에서 Zustand 상태 확인
-
 ### 3.10.4 로그인 상태 출력 및 로그아웃 기능 구현
 
 **작업 내용**: Header에 로그인 상태에 따라 다른 UI 표시
@@ -3017,9 +2924,8 @@ export default function SignupForm() {
   ```tsx
   'use client';
 
-  import Image from "next/image";
-  import Link from "next/link";
   import useUserStore from "@/zustand/userStore";
+  ...
   ```
 
 **3단계: userStore 사용**
@@ -3048,9 +2954,20 @@ export default function SignupForm() {
 
   **변경 전:**
   ```tsx
-  <div className="flex justify-end">
-    <Link href="/login" className="...">로그인</Link>
-    <Link href="/signup" className="...">회원가입</Link>
+  <form action="/">
+    <p>
+      <Image
+        src="..."
+        alt="용쌤 프로필 이미지"
+      />
+      용쌤님
+      <button>로그아웃</button>
+    </p>
+  </form>
+
+  <div>
+    <Link>로그인</Link>
+    <Link>회원가입</Link>
   </div>
   ```
 
@@ -3058,35 +2975,25 @@ export default function SignupForm() {
   ```tsx
   {user ? (
     <form onSubmit={handleLogout}>
-      <p className="flex items-center">
+      <p>
         <Image 
-          className="w-8 rounded-full mr-2" 
           src={user.image || '/images/favicon.svg'}
           alt={`${user.name} 프로필 이미지`}
-          width="24"
-          height="24"
         />
         {user.name}님
-        <button type="submit" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">
-          로그아웃
-        </button>
+        <button>로그아웃</button>
       </p>
     </form>
   ) : (
-    <div className="flex justify-end">
-      <Link href="/login" className="bg-orange-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">
-        로그인
-      </Link>
-      <Link href="/signup" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">
-        회원가입
-      </Link>
+    <div>
+      <Link>로그인</Link>
+      <Link>회원가입</Link>
     </div>
   )}
   ```
 
 **테스트**
 * 로그인 후 헤더 영역에 로그인된 사용자 정보가 출력되는지 확인
-* 로그아웃 버튼 클릭 시 로그아웃이 정상 작동하는지 확인
 * 로그아웃 후 헤더 영역에 로그인, 회원가입 버튼이 보이는지 확인
 * 로그인 후 새로고침하면 로그아웃 상태로 초기화되는 문제 확인 (다음 단계에서 해결)
 
@@ -3130,53 +3037,16 @@ export default function SignupForm() {
   );
   ```
 
-**최종 코드:**
-```ts
-import { User } from '@/types';
-import { create, StateCreator } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-
-// 로그인한 사용자 정보를 관리하는 스토어의 상태 인터페이스
-interface UserStoreState {
-  user: User | null;
-  setUser: (user: User | null) => void;
-  resetUser: () => void;
-}
-
-// 로그인한 사용자 정보를 관리하는 스토어 생성
-// StateCreator: Zustand의 유틸리티 타입으로, set 함수의 타입을 자동으로 추론해줌
-// 복잡한 타입 정의 없이도 set 함수가 올바른 타입으로 인식됨
-const UserStore: StateCreator<UserStoreState> = (set) => ({
-  user: null,
-  setUser: (user: User | null) => set({ user }),
-  resetUser: () => set({ user: null }),
-});
-
-// 스토리지를 사용하지 않을 경우
-// const useUserStore = create<UserStoreState>(UserStore);
-
-// 스토리지를 사용할 경우 (sessionStorage에 저장)
-const useUserStore = create<UserStoreState>()(
-  persist(UserStore, {
-    name: 'user',
-    storage: createJSONStorage(() => sessionStorage) // 기본은 localStorage
-  })
-);
-
-export default useUserStore;
-```
-
 **설명**
-* Zustand에 저장된 로그인한 사용자 정보는 브라우저의 메모리에만 있으므로 브라우저를 새로고침하면 초기화됩니다.
-* 로그인 상태를 계속 유지하기 위해서는 브라우저가 새로고침되어도 사라지지 않는 저장소가 필요합니다. 대표적인 것이 web storage입니다.
-* Zustand의 persist 미들웨어를 사용하면 local storage나 session storage에 상태를 동기화시켜주므로 페이지 새로고침이 발생해도 상태가 유지됩니다.
-* `sessionStorage`를 사용하면 브라우저 탭을 닫으면 세션이 종료되어 로그인 상태가 초기화됩니다.
-* `localStorage`를 사용하면 브라우저 탭을 닫아도 로그인 상태가 유지됩니다.
+* Zustand에 저장된 로그인한 사용자 정보는 브라우저의 메모리에만 있으므로 브라우저를 새로고침하면 초기화됨
+* 로그인 상태를 계속 유지하기 위해서는 브라우저가 새로고침되어도 사라지지 않는 저장소가 필요한데 대표적인 것이 web storage
+* Zustand의 persist 미들웨어를 사용하면 local storage나 session storage에 상태를 동기화시켜주므로 페이지 새로고침이 발생해도 상태가 유지됨
+* `sessionStorage`를 사용하면 브라우저 탭을 닫으면 세션이 종료되어 로그인 상태가 초기화됨
+* `localStorage`를 사용하면 브라우저 탭을 닫아도 로그인 상태가 유지됨
 
 **테스트**
 * 로그인 후 새로고침해도 로그인 상태가 유지되는지 확인
 * 브라우저 개발자 도구 Application 탭의 Storage > Session storage > http://localhost:3000에서 user 상태가 저장되어 있는지 확인
-* 브라우저 탭을 닫고 다시 열면 로그인 상태가 초기화되는지 확인 (sessionStorage 사용 시)
 
 ## 3.11 Step 03 완료
 * 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-next-03

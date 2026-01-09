@@ -3,8 +3,9 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { getPost } from "@/lib/post";
 
-export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata>{
+export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata> {
   const { boardType, _id } = await params;
+
   return {
     title: `${boardType} - React란?`,
     description: `${boardType} - React는 UI를 구성하기 위한 JavaScript 라이브러리로... `,
@@ -19,26 +20,29 @@ export async function generateMetadata({ params }: { params: Promise<{ boardType
   };
 }
 
-export default async function InfoPage ({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
+export default async function InfoPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
   const { boardType, _id } = await params;
   const res = await getPost(_id);
+    
   if (!res.ok) {
-    return <div>{ res.message }</div>;
+    return <div>{res.message}</div>;
   }
+  
   const post = res.item;
+
   return (
     <main className="flex-1 container mx-auto mt-4 px-4">
 
       <section className="mb-8 p-4">
         <form action={`/${boardType}`}>
-          <div className="font-semibold text-xl">제목 : { post.title }</div>
+        <div className="font-semibold text-xl">제목 : {post.title}</div>
           <div className="text-right text-gray-400">
-            <div>작성자 : { post.user.name }</div>
-            <div>{ post.createdAt }</div>
+            <div>작성자 : {post.user.name}</div>
+            <div>{post.createdAt}</div>
           </div>
           <div className="mb-4">
             <div>
-              <p className="w-full p-2 whitespace-pre-wrap">{ post.content }</p>
+              <p className="w-full p-2 whitespace-pre-wrap">{post.content}</p>
             </div>
             <hr/>
           </div>
@@ -50,7 +54,7 @@ export default async function InfoPage ({ params }: { params: Promise<{ boardTyp
         </form>
       </section>    
       
-      <CommentList _id={ _id } />
+      <CommentList _id={_id} />
 
     </main>
   );

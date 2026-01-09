@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import RegistForm from "@/app/[boardType]/new/RegistForm";
 
-export async function generateMetadata({ params }: { params: Promise<{ boardType: string }> }): Promise<Metadata>{
+export async function generateMetadata({ params }: { params: Promise<{ boardType: string }> }): Promise<Metadata> {
   const { boardType } = await params;
   return {
     title: `${boardType} - 게시글 등록`,
@@ -25,7 +25,7 @@ export default async function NewPage({ params }: { params: Promise<{ boardType:
         <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-200">게시글 등록</h2>
       </div>
       <section className="mb-8 p-4">
-        <RegistForm boardType={ boardType } />
+        <RegistForm boardType={boardType} />
       </section>
     </main>
   );

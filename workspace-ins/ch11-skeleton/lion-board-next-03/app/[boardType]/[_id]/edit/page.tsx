@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Metadata } from "next";
 
-export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata>{
+export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata> {
   const { boardType, _id } = await params;
   return {
     title: `${boardType} - 게시글 수정`,
@@ -19,6 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ boardType
 
 export default async function EditPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
   const { boardType, _id } = await params;
+
   return (
     <main className="flex-1 min-w-[320px] p-4">
       <div className="text-center py-4">

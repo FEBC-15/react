@@ -24,7 +24,7 @@ const UserStore: StateCreator<UserStoreState> = (set) => ({
 // 스토리지를 사용할 경우 (sessionStorage에 저장)
 const useUserStore = create<UserStoreState>()(
   persist(UserStore, {
-    name: 'userStore',
+    name: 'user',
     storage: createJSONStorage(() => sessionStorage) // 기본은 localStorage
   })
 );

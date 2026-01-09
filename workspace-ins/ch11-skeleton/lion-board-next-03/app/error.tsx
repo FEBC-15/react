@@ -1,5 +1,7 @@
 'use client';
+
 import CustomError from "@/components/common/CustomError";
+
 export default function ErrorPage({ error }: { error: Error }) {
   console.error(error);
   return (

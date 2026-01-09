@@ -1,18 +1,16 @@
-'use client';
+'use client'
 
+import useUserStore from "@/zustand/userStore";
 import Image from "next/image";
 import Link from "next/link";
-import useUserStore from "@/zustand/userStore";
 
 export default function Header() {
   const { user, resetUser } = useUserStore();
-
   const handleLogout = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     resetUser();
     alert('로그아웃 되었습니다.');
   };
-
   return (
     <header className="px-8 min-w-80 bg-slate-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 transition-color duration-500 ease-in-out">
       <nav className="flex flex-wrap justify-center items-center p-4 md:flex-nowrap md:justify-between">
@@ -32,17 +30,17 @@ export default function Header() {
 
         <div className="w-1/2 order-1 flex justify-end items-center md:order-2 md:w-auto">
 
-          { user ? (
-            <form onSubmit={ handleLogout }>
+          {user ? (
+            <form onSubmit={handleLogout}>
               <p className="flex items-center">
-                <Image 
+                <Image
                   className="w-8 rounded-full mr-2" 
-                  src={ user.image || '/images/favicon.svg' }
-                  alt={`${ user.name } 프로필 이미지`}
+                  src={user.image || '/images/favicon.svg'}
+                  alt={`${user.name}님 프로필 이미지`}
                   width="24"
                   height="24"
                 />
-                { user.name }님
+                용쌤님
                 <button type="submit" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그아웃</button>
               </p>
             </form>
@@ -51,7 +49,7 @@ export default function Header() {
               <Link href="/login" className="bg-orange-500 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">로그인</Link>
               <Link href="/signup" className="bg-gray-900 py-1 px-2 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">회원가입</Link>
             </div>
-          ) }
+          )}
 
           <button
             type="button"

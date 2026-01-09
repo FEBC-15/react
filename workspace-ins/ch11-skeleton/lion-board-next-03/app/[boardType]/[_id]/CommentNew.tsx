@@ -1,15 +1,13 @@
 'use client';
-
 import { createReply } from "@/actions/post";
 import { useActionState } from "react";
 
 export default function CommentNew({ _id }: { _id: string }) {
   const [state, formAction, isPending] = useActionState(createReply, null);
-
   return (
     <div className="p-4 border border-gray-200 rounded-lg">
       <h4 className="mb-4">새로운 댓글을 추가하세요.</h4>
-      <form action={ formAction }>
+      <form action={formAction}>
         <input type="hidden" name="_id" value={_id} />
         <div className="mb-4">
           <textarea
@@ -20,11 +18,11 @@ export default function CommentNew({ _id }: { _id: string }) {
             name="content"></textarea>
 
           <p className="ml-2 mt-1 text-sm text-red-500">
-            { state?.ok === 0 && state.errors?.content?.msg }
+            {state?.ok === 0 && state.errors?.content?.msg}
           </p>
           
         </div>
-        <button type="submit" className="bg-orange-500 py-1 px-4 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded" disabled={ isPending }>댓글 등록</button>
+        <button disabled={isPending} type="submit" className="bg-orange-500 py-1 px-4 text-sm text-white font-semibold ml-2 hover:bg-amber-400 rounded">댓글 등록</button>
       </form>
     </div>
   );
