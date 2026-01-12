@@ -3321,9 +3321,9 @@ lion-board-next-02/
 
   - ```<Link href={`/${boardType}`} className=...">목록</Link>``` -> ```<LinkButton href={`/${boardType}`}>목록</LinkButton>```
 
-  - ```<Link href={`/${boardType}/${_id}/edit`} className="...">수정</Link>``` -> ```<LinkButton href={`/${boardType}/${_id}/edit`} bgColor="gray" ownerId={post.item?.user._id}>수정</LinkButton>```
+  - ```<Link href={`/${boardType}/${_id}/edit`} className="...">수정</Link>``` -> ```<LinkButton href={`/${boardType}/${_id}/edit`} bgColor="gray" ownerId={post.user._id}>수정</LinkButton>```
 
-  - `<button type="submit" className="...` -> `<Button type="submit" bgColor="red" ownerId={post.item?.user._id}>삭제</Button>`
+  - `<button type="submit" className="...` -> `<Button type="submit" bgColor="red" ownerId={post.user._id}>삭제</Button>`
   
 ### 4.2.6 게시물 수정 화면
 * app/[boardType]/[_id]/edit/page.tsx
