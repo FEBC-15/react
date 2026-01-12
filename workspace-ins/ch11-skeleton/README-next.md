@@ -560,7 +560,7 @@ export default function CommentNew() {
             cols={40} 
             className="block p-2 w-full text-sm border rounded-lg border-gray-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             placeholder="내용을 입력하세요."
-            name="comment"></textarea>
+            name="content"></textarea>
 
           <p className="ml-2 mt-1 text-sm text-red-500">
             내용은 필수입니다.
@@ -3769,19 +3769,23 @@ lion-board-next-02/
 ### 4.6.1 댓글 등록 서버 액션에 accessToken 추가
 * 댓글 등록 서버 액션에 accessToken 추가
 * actions/post.ts의 createReply 서버 액션 수정
+  - Authorization 헤더 추가
 
-  ```tsx
-  export async function createReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
-    ...
-    headers: {
+    ```tsx
+    export async function createReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
       ...
-      'Authorization': `Bearer ${body.accessToken}`,
-    },
-    ...
-  }
-  ```
+      headers: {
+        ...
+        'Authorization': `Bearer ${body.accessToken}`,
+      },
+      ...
+    }
+    ```
+  - 캐시 무효화 코드 수정
+    - revalidatePath로 지정되어 있을 경우(위의 가이드에서 잘못 작성함) 다음 처럼 수정
+    - ```revalidatePath(`/${body.type}/${body._id}/replies`);``` -> ```updateTag(`posts/${body._id}/replies`);```
 
-### 4.6.2 댓글 등록 페이지에 accessToken 추가
+### 4.6.2 댓글 등록 페이지 수정
 * app/[boardType]/[_id]/CommentNew.tsx 수정
 
   ```tsx
@@ -3807,34 +3811,30 @@ lion-board-next-02/
   }
   ```
 
-### 4.6.3 댓글 작성자 이미지 링크 수정
-* app/[boardType]/[_id]/CommentItem.tsx 수정
-  - ```src={`${API_URL}/files/${CLIENT_ID}/${reply.user.image}`}``` -> ```src={`${API_URL}/${reply.user.image}`}```
-
 * 댓글 등록 테스트
-  - 댓글 등록 후 작성자 이름과 이미지가 나오는지 확인
 
 ## 4.7 로그인 후 댓글 삭제
 ### 4.7.1 서버 액션 추가
 * 댓글 삭제 서버 액션 추가
-* data/actions/post.ts에 추가
+* actions/post.ts에 추가
 
   ```tsx
+  type DeleteReplyActionState = DeleteRes | ErrorRes | null;
   /**
   * 댓글 삭제
-  * @param {ReplyActionState} prevState - 이전 상태(사용하지 않음)
+  * @param {DeleteReplyActionState} prevState - 이전 상태(사용하지 않음)
   * @param {FormData} formData - 삭제할 댓글 정보를 담은 FormData 객체
-  * @returns {Promise<ReplyActionState>} - 삭제 결과 응답 객체
+  * @returns {Promise<DeleteReplyActionState>} - 삭제 결과 응답 객체
   * @description
   * 댓글을 삭제하고, 성공 시 해당 게시글의 댓글 목록을 갱신
   */
-  export async function deleteReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
+  export async function deleteReply(prevState: DeleteReplyActionState, formData: FormData): Promise<DeleteReplyActionState> {
     const _id = formData.get('_id');
     const replyId = formData.get('replyId');
     const accessToken = formData.get('accessToken');
 
     let res: Response;
-    let data: ReplyInfoRes | ErrorRes;
+    let data: DeleteRes | ErrorRes;
     
     try{
       res = await fetch(`${API_URL}/posts/${_id}/replies/${replyId}`, {
@@ -3868,29 +3868,42 @@ lion-board-next-02/
   'use client';
 
   import { Button } from "@/components/ui/Button";
-  import { deleteReply } from "@/data/actions/post";
-  import { PostReply } from "@/types";
+  import { deleteReply } from "@/actions/post";
+  import { Reply } from "@/types";
   import useUserStore from "@/zustand/userStore";
-  import { useActionState } from "react";
-  import { useParams } from "next/navigation";
+  import { useActionState, useEffect } from "react";
+  import { useParams, useRouter } from "next/navigation";
 
-  export default function CommentDeleteForm({ reply }: { reply: PostReply }) {
+  export default function CommentDeleteForm({ reply }: { reply: Reply }) {
     const { type, _id } = useParams();
+    const router = useRouter();
 
     const { user } = useUserStore();
     const [state, formAction, isPending] = useActionState(deleteReply, null);
-    console.log(state, isPending);
+
+    // 서버 액션 결과에 따라 처리
+    useEffect(() => {
+      if (state?.ok === 1) {
+        // 성공 시: 서버 컴포넌트를 다시 렌더링하여 댓글 목록 갱신
+        router.refresh();
+      }
+      if (state?.ok === 0) {
+        // 실패 시: 사용자에게 메시지 표시
+        alert(state?.message);
+      }
+    }, [state, router]);
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-      if (!window.confirm("정말 삭제하시겠습니까?")) event.preventDefault();
+      if (!window.confirm('댓글을 삭제하시겠습니까?')) event.preventDefault();
     };
+    
     return (
       <form action={formAction} onSubmit={handleSubmit} className="inline ml-2">
         <input type="hidden" name="type" value={type} />
         <input type="hidden" name="_id" value={_id} />
         <input type="hidden" name="replyId" value={reply._id} />
         <input type="hidden" name="accessToken" value={user?.token?.accessToken ?? ''} />
-        <Button type="submit" bgColor="red" size="sm" ownerId={reply.user._id}>삭제</Button>
+        <Button disabled={isPending} type="submit" bgColor="red" size="sm" ownerId={reply.user._id}>삭제</Button>
       </form>
     )
   }
@@ -3909,3 +3922,5 @@ lion-board-next-02/
 ## 4.8 전체 기능 테스트
 - http://localhost:3000 접속
 
+## 4.9 Step 04 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-next-04
