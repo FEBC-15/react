@@ -38,21 +38,35 @@
   - [3.1 준비](#31-준비)
   - [3.2 로그인과 JWT 토큰 관리](#32-로그인과-jwt-토큰-관리)
   - [3.3 다크 모드 적용](#33-다크-모드-적용)
+  - [3.4 Step 03 완료](#34-step-03-완료)
+- [4 Step 04 - 배포 및 최적화](#4-step-04---배포-및-최적화)
+  - [4.1 준비](#41-준비)
+    - [4.1.1 프로젝트 생성](#411-프로젝트-생성)
+  - [4.2 배포 준비](#42-배포-준비)
+    - [4.2.1 배포전 테스트](#421-배포전-테스트)
+    - [4.2.2 .env](#422-env)
+  - [4.3 배포](#43-배포)
+    - [4.3.1 netlify 설정 파일 추가](#431-netlify-설정-파일-추가)
+    - [4.3.2 배포](#432-배포)
+  - [4.4 최적화](#44-최적화)
+    - [4.4.1 SEO(Search Engine Optimization)](#441-seosearch-engine-optimization)
+    - [4.4.2 사용자 경험(UX) 최적화](#442-사용자-경험ux-최적화)
+  - [4.5 Step 04 완료](#45-step-04-완료)
 
 # 0 개발 준비
 
 ## 0.1 샘플 코드 테스트
 ### 0.1.1 샘플 코드 복사
-* 레포지토리 루트 폴더(React)에서 실행
+* 레포지토리 루트 폴더(react)에서 실행
   ```sh
-  cp -r sample/11/workspace/ch11-skeleton/lion-board-template workspace/ch11-skeleton/lion-board-template
+  cp -r sample/11/workspace/ch11-skeleton/lion-board-template workspace/ch11-skeleton/lion-board-template-react
   ```
 
 ### 0.1.2 샘플 코드 실행
 * 레포지토리 루트 폴더(React)에서 실행
   ```sh
   cd workspace/ch11-skeleton
-  npx live-server lion-board-template
+  npx live-server lion-board-template-react
   ```
 
 ### 0.1.3 접속 테스트
@@ -169,7 +183,7 @@ export default defineConfig({
 * 작업 폴더: workspace/ch11-skeleton/lion-board-react-01
 
 ## 1.1 정적인 자원 처리
-* lion-board-template/images 폴더를 lion-board-react-01/public 폴더에 복사
+* lion-board-template-react/images 폴더를 lion-board-react-01/public 폴더에 복사
 * lion-board-react-01/index.html 파일 수정
   - 언어 설정
     ```html
@@ -182,7 +196,7 @@ export default defineConfig({
     
 ## 1.2 UI 컴포넌트 작성
 * 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch02-start#4-tsx
-* workspace/ch11-skeleton/lion-board-template 폴더의 html 코드를 컴포넌트로 이동
+* workspace/ch11-skeleton/lion-board-template-react 폴더의 html 코드를 컴포넌트로 이동
   - header 태그는 Header.tsx에서 사용
   - footer 태그는 Footer.tsx에서 사용
   - div id="main" 태그는 각 페이지의 컴포넌트에서 사용
@@ -191,7 +205,7 @@ export default defineConfig({
 ### 1.2.1 공통 컴포넌트
 * lion-board-react-01/src/components/layout 폴더 생성후 파일 작성
 * Header.tsx
-  - lion-board-template/index.html의 `<header>` 영역 복사
+  - lion-board-template-react/index.html의 `<header>` 영역 복사
   - JSX 문법에 맞게 수정
   - 제목을 `라이언 보드`에서 `라이언 보드 v.01`로 수정
 
@@ -271,7 +285,7 @@ export default Header;
 ```
 
 * Footer.tsx
-  - lion-board-template/index.html의 `<footer>` 영역 복사
+  - lion-board-template-react/index.html의 `<footer>` 영역 복사
   - JSX 문법에 맞게 수정
 
 ```tsx
@@ -319,7 +333,7 @@ export default Footer;
 ### 1.2.3 페이지별 컴포넌트
 #### 메인 페이지
 * lion-board-react-01/src/pages/index.tsx 파일 생성
-- lion-board-template/index.html의 `<main>` 영역 복사
+- lion-board-template-react/index.html의 `<main>` 영역 복사
   - JSX 문법에 맞게 수정
 ```tsx
 function MainPage() {
@@ -360,45 +374,45 @@ export default MainPage;
 
 #### 게시판 기능
 * lion-board-react-01/src/pages/board 폴더 생성
-* lion-board-template 폴더의 각 html 파일에 있는 `<main>` 태그 복사한 후 JSX 문법으로 수정
-  - List.tsx: lion-board-template/info/index.html의 `<main>` 태그 복사
+* lion-board-template-react 폴더의 각 html 파일에 있는 `<main>` 태그 복사한 후 JSX 문법으로 수정
+  - List.tsx: lion-board-template-react/info/index.html의 `<main>` 태그 복사
     - ListItem.tsx: List.tsx에서 `<tbody>` 내부의 `<tr>` 영역 분리
-  - Detail.tsx: lion-board-template/info/1.html의 `<main>` 태그 복사
+  - Detail.tsx: lion-board-template-react/info/1.html의 `<main>` 태그 복사
     - CommentList.tsx: Detail.tsx에서 `<section className="mb-8">` 영역 분리
       - CommentListItem.tsx: CommentList.tsx에서 `<div className="shadow-md rounded-lg p-4 mb-4">` 영역 분리
       - CommentNew.tsx: CommentList.tsx에서 `<div className="p-4 border border-gray-200 rounded-lg">` 영역 분리
-  - New.tsx: lion-board-template/new/index.html의 `<main>` 태그 복사
-  - Edit.tsx: lion-board-template/info/1/edit/index.html의 `<main>` 태그 복사
+  - New.tsx: lion-board-template-react/new/index.html의 `<main>` 태그 복사
+  - Edit.tsx: lion-board-template-react/info/1/edit/index.html의 `<main>` 태그 복사
 
 #### 회원 기능
 * lion-board-react-01/src/pages/user 폴더 생성
-* lion-board-template 폴더의 각 html 파일에 있는 `<main>` 태그 복사한 후 JSX 문법으로 수정해서 완성
-  - Login.tsx: lion-board-template/user/login/index.html의 `<main>` 태그 복사
-  - Signup.tsx: lion-board-template/user/signup/index.html의 `<main>` 태그 복사
+* lion-board-template-react 폴더의 각 html 파일에 있는 `<main>` 태그 복사한 후 JSX 문법으로 수정해서 완성
+  - Login.tsx: lion-board-template-react/user/login/index.html의 `<main>` 태그 복사
+  - Signup.tsx: lion-board-template-react/user/signup/index.html의 `<main>` 태그 복사
 
 #### 에러 페이지
 * 에러가 발생할 경우 `Layout` 컴포넌트 대신 에러 페이지를 보여주어야 하므로 `<Header>`, `<Footer>`를 포함한 완전한 페이지로 구성해야 함
 * lion-board-react-01/src/pages/ErrorPage.tsx 파일 생성
 * lion-board-react-01/src/components/layout/index.tsx 코드 복사
-* `<Outlet />` 컴포넌트 대신 lion-board-template/error.html의 `<main>` 영역 복사
+* `<Outlet />` 컴포넌트 대신 lion-board-template-react/error.html의 `<main>` 영역 복사
   - JSX 문법에 맞게 수정
 
   ```tsx
   import Footer from "@/components/layout/Footer";
   import Header from "@/components/layout/Header";
+  import { Link } from "react-router";
 
   function ErrorPage() {
     return (
       <div className="flex flex-col min-h-screen dark:bg-gray-700 dark:text-gray-200 transition-color duration-500 ease-in-out">
         <Header />
         <main className="flex-1 py-20 bg-red-100 border border-red-400 text-red-700 p-4 rounded-lg flex flex-col items-center space-y-2">
-          <h2 className="text-xl font-semibold mb-2 text-center">🚧 앗, 무언가 잘못됐네요!</h2>
-          <h3 className="text-md font-semibold mb-2 text-center">존재하지 않는 페이지입니다.</h3>
-          <p className="pt-12 text-center">이 오류는 더 나은 서비스를 위한 첫걸음이에요. 조금만 기다려 주세요!</p>
-          <button className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600">
-            ⚙️ 다시 시도
-          </button>
-        </main>
+            <h2 className="text-xl font-semibold mb-2 text-center">🚧 앗, 무언가 잘못됐네요!</h2>
+            <h3 className="text-md font-semibold mb-2 text-center">잠시후 다시 이용해 주시기 바랍니다.</h3>
+            <Link to="/" className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600">
+              ⚙️ 홈으로 이동
+            </Link>
+          </main>
         <Footer />
       </div>
     );
@@ -2317,3 +2331,415 @@ function App() {
   ......
 }
 ```
+
+## 3.4 Step 03 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-react-03
+
+# 4 Step 04 - 배포 및 최적화
+* 배포
+* 최적화
+  - SEO
+  - 사용자 경험(UX) 최적화
+    + Lazy loading
+    + 로딩중 상태 표시(`<Suspense>` 사용)
+    + alert 대신 toast 사용
+    + NavLink 사용
+    + 에러 처리
+
+## 4.1 준비
+### 4.1.1 프로젝트 생성
+* workspace/ch11-skeleton 폴더에서 실행
+
+  ```sh
+  # lion-board-react-03 폴더를 복사해서 lion-board-react-04 폴더 생성
+  cp -r lion-board-react-03 lion-board-react-04
+  ```
+
+* lion-board-react-04/src/components/layout/Header.tsx 파일 수정
+  - `라이언 보드 v.04` -> `라이언 보드 v.04`
+
+## 4.2 배포 준비
+
+### 4.2.1 배포전 테스트
+```sh
+npm run build
+npm run preview
+```
+
+### 4.2.2 .env
+* Vite 환경 변수와 모드: <https://ko.vitejs.dev/guide/env-and-mode.html>
+* dotenv: DB 접속 정보, API KEY 등의 환경설정 정보를 코드에 직접 작성하지 않고 외부 파일로 만들어서 관리하기 위해 사용하는 nodejs 패키지
+  - 참고: <https://github.com/motdotla/dotenv>
+* 개발, 테스트, 운영 등의 여러 환경에서 각각 다른 값을 사용해야 하는 경우 각 환경 설정 정보를 가진 파일을 따로 작성해서 적용 가능
+* `.env` 파일에 추가한 환경 설정 값은 OS의 환경변수로 추가됨
+
+#### 설치
+```sh
+npm i dotenv
+```
+* Vite로 프로젝트를 생성했을 경우 따로 설치할 필요 없음
+  - 현재 프로젝트는 Vite 기반이기 때문에 설치할 필요 없음
+
+#### 환경 설정 파일
+* 프로젝트 루트에 .env 파일 생성
+  - Vite로 포로젝트를 생성했을 경우 환경변수는 반드시 VITE_ 접두사로 시작해야 함
+* 예시
+  ```
+  VITE_API_SERVER=https://fesp-api.koyeb.app/market
+  VITE_KAKAO_MAP_API_KEY=acd4396a562ece1a9a522481df8561c5
+  VITE_KAKAO_LOGIN_KEY=cbaac2342342342348749845670acbb
+  ```
+
+* .env 파일을 수정한 후에는 서버 재시작 필요
+* 외부에 노출되면 안되는 중요한 정보를 담고 있을 경우 github의 공개 프로젝트라면 .gitignore에 추가해서 커밋되지 않도록 지정
+  ```
+  *.env*
+  ```
+
+* 이미 .env 파일이 git에서 추적중인 상태라서 추가한 ignore가 적용 안되다면 캐시 삭제
+  - 기존의 모든 변경사항은 커밋 후 다음 명령 실행
+    ```sh
+    git rm -r --cached .
+    git add .
+    git commit -m "gitignore 다시 적용"
+    ```
+
+#### 컴포넌트에서 사용(*.js, *.jsx, *.ts, *.tsx)
+* Vite 프로젝트는 import.meta.env 변수를 통해서 사용
+* src/utils/axiosInstance.ts 파일 수정
+```ts
+const API_SERVER = import.meta.env.VITE_API_SERVER;
+```
+
+#### HTML에서 사용(*.html)
+* %% 사이에 환경변수 지정
+* 예시
+```html
+<script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=%VITE_KAKAO_MAP_API_KEY%"></script>
+```
+
+#### 환경별 파일 분리
+* Vite로 프로젝트를 생성했을 경우 vite 실행 명령에 따라서 각 환경에 맞는 .env 파일이 추가적으로 적용됨
+  - `npm run dev`
+    + `.env.development` 설정이 추가 적용
+  - `npm run build`
+    + `.env.production` 설정이 추가 적용
+* 다른 `.env` 파일과 중복된 환경변수가 있을 경우 이전 환경변수 값을 재정의함
+
+##### 모든 환경
+* `.env` 파일
+  - 모든 환경에서 적용되는 기본 설정 파일
+
+##### 개발 환경
+* `.env.development` 파일
+  - .env 파일의 환경변수를 재정의
+  - npm run dev로 개발 서버 구동시 적용
+
+##### 운영 환경
+* `.env.production` 파일
+  - .env 파일의 환경변수를 재정의
+  - npm run build로 번들링 할때 적용
+
+##### 로컬 환경(개발자 PC)
+* 개발서버, 테스트서버, 운영서버에는 만들 필요 없고 개발자 개인 PC에만 만들어서 적용시키는 파일
+* 로컬에 DB나 API 서버등을 직접 구축해서 사용할 경우에 필요
+* `.env.local`
+  - 로컬에 개발, 운영 환경이 구분없이 구축되어 있거나 두 환경에서 공통으로 사용할 환경 변수 정의
+  - `.env`, `.env.development`, `.env.production` 파일의 환경변수를 재정의
+* `.env.development.local`
+  - 로컬에 개발, 운영 환경을 분리해서 구축했을 경우 로컬 개발 환경에서 사용
+  - `.env`, `.env.development`, `.env.local` 파일의 환경변수를 재정의
+* `.env.production.local`
+  - 로컬에 개발, 운영 환경을 분리해서 구축했을 경우 로컬 운영 환경에서 사용
+  - `.env`, `.env.production`, `.env.local` 파일의 환경변수를 재정의
+
+#### `.env` 파일 적용 우선순위
+* `.env` 파일이 적용되는 순서
+* 좌측에서 우측으로 파일이 로딩되며 우측 파일에 좌측 파일과 같은 변수가 있으면 덮어씀
+
+##### `npm run dev`
+* `.env` -> `.env.development` -> `.env.local` -> `.env.development.local`
+
+##### `npm run build`
+* `.env` -> `.env.production` -> `.env.local` -> `.env.production.local`
+
+## 4.3 배포
+* Netlify에 배포
+* https://netlify.com
+
+### 4.3.1 netlify 설정 파일 추가
+- 프로젝트 루트에 `netlify.toml` 파일 생성(들여쓰기는 반드시 스페이스 2개를 이용)
+- fallback url 추가: 클라이언트의 모든 url 요청에 index.html 응답 하도록 설정
+
+  ```yaml
+  [[redirects]]
+    from = "/*"
+    to = "/index.html"
+    status = 200
+  ```
+
+* `.env` 파일을 `.gitignore`에 추가했다면 git 추적에서 제외되므로 Netlify에 등록한 github 레포지토리에 존재하지 않기 때문에 환경 변수를 수동으로 등록해야 함
+  - 배포 설정에서 등록 가능
+
+### 4.3.2 배포
+* Netlify 접속
+  - https://netlify.com
+
+* 로그인
+* Add new Project > Import an existing project > GitHub
+* `react` 레포지토리 선택
+  - react 레포지토리가 보이지 않는다면 Configure the Netlify app onGitHub 링크를 선택해서 레포지토리 추가
+  - Project name: url로 사용될 이름 지정(예시, `lion-board-react`)
+  - Base directory: `workspace/ch11-skeleton/lion-board-react-04`
+  - Build command: `npm run build`
+  - Publish directory: `workspace/ch11-skeleton/lion-board-react-04/dist`
+  - Environment variable > Add environment variables > Import environment variables
+    + .env 파일 내용 전체를 복사해서 붙여넣기
+    + `VITE_API_SERVER=https://fesp-api.koyeb.app/market`
+  - Deploy `xxx` 버튼 클릭
+
+## 4.4 최적화
+
+### 4.4.1 SEO(Search Engine Optimization)
+#### 메타 데이터 추가
+* index.html에 메타 데이터 추가
+* SPA는 하나의 html 페이지를 사용하므로 각 페이지별로 메타 데이터가 따로 적용되지 않고 모든 페이지에 일괄 적용됨
+  ```html
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="/images/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>멋쟁이 사자처럼 게시판 - 라이언 보드</title>
+
+    <!-- 기본 meta 태그 -->
+    <meta name="description" content="다양한 주제의 커뮤니티와 활발한 소통을 위한 플랫폼입니다. 관심사에 따라 참여하고, 의견을 나누세요." />
+    <meta name="keywords" content="커뮤니티, 소통, 포럼, 관심사, 온라인 모임, 커뮤니티 서비스" />
+    <meta name="author" content="Front End Boot Camp" />
+
+    <!-- Open Graph meta 태그 (소셜 미디어용) -->
+    <meta property="og:title" content="라이언 보드에 오신걸 환영합니다." />
+    <meta property="og:description" content="유용한 정보를 나누고 공유하세요." />
+    <meta property="og:image" content="/images/front-end.png" />
+    <meta property="og:url" content="https://lion-board-react.netlify.app" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="라이언 보드" />
+  </head>
+  ```
+
+### 4.4.2 사용자 경험(UX) 최적화
+#### 레이지 로딩
+* 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch05-router#7-레이지-로딩-lazy-loading
+
+* routes.tsx
+
+  - 변경전
+    ```tsx
+    import ProtectedRoute from "@/components/ProtectedRoute";
+    import { createBrowserRouter } from "react-router";
+
+    import Layout from "@/components/layout";
+    import Detail from "@/pages/board/Detail";
+    import Edit from "@/pages/board/Edit";
+    import List from "@/pages/board/List";
+    import New from "@/pages/board/New";
+    import ErrorPage from "@/pages/ErrorPage";
+    import MainPage from "@/pages/index";
+    import Login from "@/pages/user/Login";
+    import Signup from "@/pages/user/Signup";
+    ```
+
+  - 변경후
+    ```tsx
+    import ProtectedRoute from "@/components/ProtectedRoute";
+    import { createBrowserRouter } from "react-router";
+    import { lazy } from 'react';
+
+    const Layout = lazy(() => import('@/components/layout'));
+    const Detail = lazy(() => import('@/pages/board/Detail'));
+    const Edit = lazy(() => import('@/pages/board/Edit'));
+    const List = lazy(() => import('@/pages/board/List'));
+    const New = lazy(() => import('@/pages/board/New'));
+    const ErrorPage = lazy(() => import('@/pages/ErrorPage'));
+    const MainPage = lazy(() => import('@/pages/index'));
+    const Login = lazy(() => import('@/pages/user/Login'));
+    const Signup = lazy(() => import('@/pages/user/Signup'));
+    ```
+
+  ```tsx
+  ...
+  import { lazy } from 'react';
+
+  const Layout = lazy(() => import('@components/layout'));
+  const Detail = lazy(() => import('@pages/board/Detail'));
+  const Edit = lazy(() => import('@pages/board/Edit'));
+  const List = lazy(() => import('@pages/board/List'));
+  const New = lazy(() => import('@pages/board/New'));
+  const ErrorPage = lazy(() => import('@pages/ErrorPage'));
+  const MainPage = lazy(() => import('@pages/index'));
+  const Login = lazy(() => import('@pages/user/Login'));
+  const Signup = lazy(() => import('@pages/user/Signup'));
+  ```
+
+#### 로딩중 상태 표시
+##### Spinner 컴포넌트 제작
+* components/ui/Spinner.tsx 작성
+  ```tsx
+  import { HashLoader, ScaleLoader, SkewLoader } from "react-spinners";
+
+  const Spinner = {
+    FullScreen(){
+      return (
+        <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-700 dark:text-gray-200">
+          <div className="flex flex-col items-center">
+            <h3 className="mb-4 text-lg font-semibold">잠시만 기다려주세요.</h3>
+            <HashLoader
+              color="#f58714"
+              size={60}
+            />
+          </div>
+        </div>
+      );
+    },
+    WithHeader(){
+      const screenHeight = window.innerHeight; // 현재 브라우저 창의 높이
+      const headerHeight = 68;
+      const footerHeight = 68;
+      const spinnerHeight = screenHeight - headerHeight - footerHeight; // 스피너 영역의 높이 계산
+
+      return (
+        <div className="flex items-center justify-center" style={{ height: spinnerHeight }}>
+          <div className="text-center">
+            <h3 className="mb-4 text-lg font-semibold">잠시만 기다려주세요.</h3>
+            <SkewLoader color="#F97316" />
+          </div>
+        </div>
+      );    
+    },
+    TargetArea(){
+      return (
+        <div className="flex justify-center">
+          <ScaleLoader color="#F97316"/>
+        </div>
+      );
+    }
+  };
+
+  export default Spinner;
+  ```
+
+##### Suspense 컴포넌트 사용
+* 참고: <https://github.com/FEBC-15/react/tree/main/workspace-ins/ch09-ajax#83-render-as-you-fetch>
+* App.tsx
+  ```tsx
+  ...
+  import { Suspense } from "react";
+  import Spinner from '@/components/ui/Spinner';
+  
+  function App() {
+    ...    
+    return (
+      <Suspense fallback={ <Spinner.FullScreen /> }>
+        <RouterProvider router={ router } />
+      </Suspense>
+    );
+  }
+  ```
+
+#### alert 대신 toast 사용
+
+##### toast 설정
+* react-toastify 사용
+* App.tsx에 `<ToastContainer>` 추가
+  ```tsx
+  ...
+  import { Slide, ToastContainer } from 'react-toastify';
+  import 'react-toastify/dist/ReactToastify.css';
+  ......
+  function App() {
+    ...    
+    return (
+      <Suspense fallback={ <Spinner.FullScreen /> }>
+        <RouterProvider router={ router } />
+        <ToastContainer
+          position="top-center"
+          hideProgressBar={true}
+          autoClose={1500}
+          closeOnClick={true}
+          theme="light"
+          transition={ Slide }
+        />
+      </Suspense>
+    );
+  }
+  ```
+
+##### toast 사용 예시
+* Detail.tsx
+  ```tsx
+  import { toast } from 'react-toastify';
+  ....
+  const { mutate } = useMutation<DeleteRes, AxiosError<ErrorRes>, void>({
+    mutationFn: () => deletePost(Number(_id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['posts', type] });
+      toast.success('삭제되었습니다.', {
+        onClose: () => navigate(`/${post.type}`)
+      });
+    }
+  });
+  ```
+
+#### NavLink 사용
+* 참고: <https://github.com/FEBC-15/react/tree/main/workspace-ins/ch05-router#42-navlink>
+* Header.tsx의 Link를 NavLink로 교체
+  ```tsx
+  <NavLink className={ ({ isActive }) => isActive ? 'text-amber-500 font-semibold' : '' } to="/info">정보공유</NavLink>
+  <NavLink className={ ({ isActive }) => isActive ? 'text-amber-500 font-semibold' : '' } to="/free">자유게시판</NavLink>
+  <NavLink className={ ({ isActive }) => isActive ? 'text-amber-500 font-semibold' : '' } to="/qna">질문게시판</NavLink>
+  ```
+
+#### 에러 처리
+* 참고: <https://github.com/FEBC-15/react/tree/main/workspace-ins/ch05-router#542-에러-처리-전용-라우트>
+* 참고: <https://github.com/FEBC-15/react/tree/main/workspace-ins/ch05-router#61-userouteerror>
+
+* 컴포넌트에서 try~catch로 에러를 따로 처리하지 않을 경우 `<ErrorPage>`를 보여줌
+
+##### ErrorPage.tsx
+```tsx
+import Footer from "@/components/layout/Footer";
+import Header from "@/components/layout/Header";
+import { isRouteErrorResponse, Link, useRouteError } from "react-router";
+
+function ErrorPage() {
+  const err = useRouteError();
+  let message = '예상하지 못한 에러가 발생했습니다.';
+
+  if (isRouteErrorResponse(err) && err.status === 404) {
+    message = '존재하지 않는 페이지입니다.';
+  }
+  
+  return (
+    <div className="flex flex-col min-h-screen dark:bg-gray-700 dark:text-gray-200 transition-color duration-500 ease-in-out">
+      <Header />
+      <main className="flex-1 py-20 bg-red-100 border border-red-400 text-red-700 p-4 rounded-lg flex flex-col items-center space-y-2">
+        <h2 className="text-xl font-semibold mb-2 text-center">🚧 앗, 무언가 잘못됐네요!</h2>
+        <h3 className="text-md font-semibold mb-2 text-center">{ message }</h3>
+        <Link to="/" className="bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600">
+          ⚙️ 홈으로 이동
+        </Link>
+      </main>
+      <Footer />
+    </div>
+  );
+}
+
+export default ErrorPage;
+```
+
+##### 에러 테스트
+* http://localhost:5173/a/b/c 접속해서 404 에러 확인
+
+## 4.5 Step 04 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-react-04
+
+* 완성본 배포 주소: <https://lion-board-react.netlify.app>

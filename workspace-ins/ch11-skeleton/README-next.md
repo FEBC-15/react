@@ -8,7 +8,7 @@
 - [0 개발 준비](#0-개발-준비)
   - [0.1 샘플 코드 테스트](#01-샘플-코드-테스트)
   - [0.2 프로젝트 생성](#02-프로젝트-생성)
-  - [0.3 불필요한 파일 정리](#03-불필요한-파일-정리)
+  - [0.3 기본으로 생성된 파일 정리](#03-기본으로-생성된-파일-정리)
   - [0.4 샘플 복사](#04-샘플-복사)
   - [0.5 개발 서버 구동](#05-개발-서버-구동)
 - [1 Step 01 - html 파일을 리액트 컴포넌트로 변환](#1-step-01---html-파일을-리액트-컴포넌트로-변환)
@@ -34,6 +34,16 @@
   - [3.8 회원 가입 화면](#38-회원-가입-화면)
   - [3.9 로그인 화면](#39-로그인-화면)
   - [3.10 로그인 상태 유지](#310-로그인-상태-유지)
+  - [3.11 Step 03 완료](#311-step-03-완료)
+- [4 Step 04 - 나머지 기능 구현(API 서버 연동)](#4-step-04---나머지-기능-구현api-서버-연동)
+  - [4.1 Button 컴포넌트 작성](#41-button-컴포넌트-작성)
+  - [4.2 Button 컴포넌트 적용](#42-button-컴포넌트-적용)
+  - [4.3 로그인 후 게시글 등록](#43-로그인-후-게시글-등록)
+  - [4.4 로그인 후 게시글 수정](#44-로그인-후-게시글-수정)
+  - [4.5 로그인 후 게시글 삭제](#45-로그인-후-게시글-삭제)
+  - [4.6 로그인 후 댓글 등록](#46-로그인-후-댓글-등록)
+  - [4.7 로그인 후 댓글 삭제](#47-로그인-후-댓글-삭제)
+  - [4.8 전체 기능 테스트](#48-전체-기능-테스트)
 
 # 0 개발 준비
 
@@ -550,7 +560,7 @@ export default function CommentNew() {
             cols={40} 
             className="block p-2 w-full text-sm border rounded-lg border-gray-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             placeholder="내용을 입력하세요."
-            name="comment"></textarea>
+            name="content"></textarea>
 
           <p className="ml-2 mt-1 text-sm text-red-500">
             내용은 필수입니다.
@@ -1787,7 +1797,7 @@ lion-board-next-02/
           'Content-Type': 'application/json',
           'Client-Id': CLIENT_ID,
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ content: body.content }),
       });
 
       data = await res.json();
@@ -2066,12 +2076,29 @@ lion-board-next-02/
 * `app/[boardType]/[_id]/page.tsx` 파일 열기
 
 **1단계: API 호출 및 에러 처리**
-* 함수 내부에서 `getPost` 함수 호출
+* generateMetadata, InfoPage 내부에서 `getPost` 함수 호출
 * 에러 처리 로직 추가
 * 하드코딩 데이터를 조회한 게시물 정보로 수정
 
   **변경 전:**
   ```tsx
+  export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata> {
+    const { boardType, _id } = await params;
+
+    return {
+      title: `${boardType} - React란?`,
+      description: `${boardType} - React는 UI를 구성하기 위한 JavaScript 라이브러리로... `,
+      openGraph: {
+        title: `${boardType} - React란?`,
+        description: `${boardType} - React는 UI를 구성하기 위한 JavaScript 라이브러리로... `,
+        url: `/${boardType}/${_id}`,
+        images: {
+          url: '/images/front-end.png'
+        }
+      }
+    };
+  }
+
   export default async function InfoPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
     const { boardType, _id } = await params;
     
@@ -2090,6 +2117,30 @@ lion-board-next-02/
   ```tsx
   import { getPost } from "@/lib/post";
   ...
+  export async function generateMetadata({ params }: { params: Promise<{ boardType: string, _id: string }> }): Promise<Metadata | undefined> {
+    const { boardType, _id } = await params;
+    const res = await getPost(_id);
+    
+    if (!res.ok) {
+      return; // undefined를 반환하면 가까운 상위의 metadata를 사용
+    }
+      
+    const post = res.item;
+
+    return {
+      title: `${post.title}`,
+      description: `${post.content.substring(0, 160)}`,
+      openGraph: {
+        title: `${post.title}`,
+        description: `${post.content.substring(0, 160)}`,
+        url: `/${boardType}/${_id}`,
+        images: {
+          url: '/images/front-end.png'
+        }
+      }
+    };
+  }
+
   export default async function InfoPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
     const { boardType, _id } = await params;
     const res = await getPost(_id);
@@ -2111,7 +2162,7 @@ lion-board-next-02/
   }
   ```
 
-**2단계: CommentList에 _id prop 전달**
+**2단계: CommentList에 boardType, _id prop 전달**
 * CommentList 컴포넌트에 `_id` prop 전달
 
   **변경 전:**
@@ -2121,7 +2172,7 @@ lion-board-next-02/
 
   **변경 후:**
   ```tsx
-  <CommentList _id={_id} />
+  <CommentList boardType={boardType} _id={_id} />
   ```
 
 **테스트**
@@ -2158,7 +2209,7 @@ lion-board-next-02/
   ```tsx
   import { getReplies } from "@/lib/post";
 
-  export default async function CommentList({ _id }: { _id: string }) {
+  export default async function CommentList({ boardType, _id }: { boardType: string, _id: string }) {
     const res = await getReplies(_id);
     
     return (
@@ -2171,7 +2222,7 @@ lion-board-next-02/
         ) : (
           <p>{res.message}</p>
         )}
-        <CommentNew _id={_id} />
+        <CommentNew boardType={boardType} _id={_id} />
       </section>
     );
   }
@@ -3050,3 +3101,826 @@ lion-board-next-02/
 
 ## 3.11 Step 03 완료
 * 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-next-03
+
+# 4 Step 04 - 나머지 기능 구현(API 서버 연동)
+
+**목표**: 
+
+**준비 작업**:
+* workspace/ch11-skeleton 폴더에서 실행
+
+  ```sh
+  # lion-board-next-03/.next와 node_modules 폴더 삭제
+  rm -rf lion-board-next-03/.next lion-board-next-03/node_modules && echo "삭제 완료"
+  # lion-board-next-03 폴더를 복사해서 lion-board-next-04 폴더 생성
+  cp -r lion-board-next-03 lion-board-next-04 && echo "복사 완료"
+  # 복사한 폴더로 이동
+  cd lion-board-next-04
+  # 패키지 설치
+  npm i
+  ```
+
+* lion-board-next-04/components/common/Header.tsx 파일 수정
+  - `라이언 보드 v.03` -> `라이언 보드 v.04`
+
+## 4.1 Button 컴포넌트 작성
+* 로그인 된 사용자에게만 글작성 버튼 보여주기
+
+### 4.1.1 Button에서 사용할 스타일 정의
+* components/ui/buttonStyle.ts 파일 생성
+
+  ```ts
+  export const baseButtonClass = 'inline-flex items-center ml-2 cursor-pointer py-1 px-2 text-white font-semibold rounded transition-colors';
+
+  export const btnColor = {
+    gray: 'bg-gray-900 hover:bg-amber-400',
+    orange: 'bg-orange-500 hover:bg-amber-400',
+    red: 'bg-red-500 hover:bg-amber-400',
+  } as const;
+
+  export const btnSize = {
+    sm: 'text-sm py-0.5 px-2',
+    md: 'text-base py-1 px-4',
+    lg: 'text-lg py-2 px-6',
+  } as const;
+
+  export const btnDisabled = 'opacity-50 cursor-not-allowed';
+  ```
+
+### 4.1.2 Button 컴포넌트 작성
+* components/ui/Button.tsx 파일 생성
+* Button 컴포넌트 작성
+  - `<button>' 렌더링
+* LinkButton 컴포넌트 작성
+- `<Link>` 컴포넌트 렌더링
+
+  ```tsx
+  'use client';
+
+  import Link from 'next/link';
+  import useUserStore from '@/zustand/userStore';
+  import { baseButtonClass, btnColor, btnSize, btnDisabled } from './buttonStyle';
+
+  // 공통 유틸리티 함수: 버튼 클래스 조합
+  function getButtonClasses({
+    bgColor = 'orange',
+    size = 'md',
+    disabled,
+    className,
+  }: {
+    bgColor?: 'gray' | 'orange' | 'red';
+    size?: 'sm' | 'md' | 'lg';
+    disabled?: boolean;
+    className?: string;
+  }): string {
+    return [
+      baseButtonClass,
+      btnColor[bgColor],
+      btnSize[size],
+      disabled && btnDisabled,
+      className,
+    ].filter(Boolean).join(' ');
+  }
+
+  // Button Props
+  interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    bgColor?: 'gray' | 'orange' | 'red'; // 버튼 배경색
+    size?: 'sm' | 'md' | 'lg'; // 버튼 크기
+    needLogin?: boolean; // 로그인 필요 여부
+    ownerId?: number; // 특정 사용자에게만 노출할 경우 사용자 id
+  }
+
+  // LinkButton Props
+  interface LinkButtonProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+    children: React.ReactNode; // 버튼 내부에 표시될 내용
+    href: string; // 이동할 경로
+    bgColor?: 'gray' | 'orange' | 'red'; // 버튼 배경색
+    size?: 'sm' | 'md' | 'lg'; // 버튼 크기
+    needLogin?: boolean; // 로그인 필요 여부
+    ownerId?: number; // 특정 사용자에게만 노출할 경우 사용
+    className?: string; // 추가 클래스
+  }
+
+  // Button 컴포넌트 정의
+  export const Button: React.FC<ButtonProps> = ({ 
+    children, 
+    bgColor, 
+    size, 
+    className, 
+    needLogin, 
+    ownerId, 
+    disabled, 
+    ...rest 
+  }) => {
+    const { user } = useUserStore(); // 로그인 사용자 정보 가져오기
+
+    // 로그인 필요 & 로그인 안 된 경우 버튼 미노출
+    if (needLogin && !user) return null;
+    // ownerId가 있고, 현재 로그인 사용자가 owner가 아니면 버튼 미노출
+    if (ownerId && user?._id !== ownerId) return null;
+    
+    const classes = getButtonClasses({ bgColor, size, disabled, className });
+    
+    return (
+      <button
+        className={classes}
+        disabled={disabled}
+        {...rest}
+      >
+        {children}
+      </button>
+    );
+  };
+
+  // LinkButton 컴포넌트 정의
+  export const LinkButton: React.FC<LinkButtonProps> = ({ 
+    children, 
+    href, 
+    bgColor='orange', 
+    size='md', 
+    className, 
+    needLogin, 
+    ownerId, 
+    ...rest 
+  }) => {
+    const { user } = useUserStore(); // 로그인 사용자 정보 가져오기
+
+    // 로그인 필요 & 로그인 안 된 경우 버튼 미노출
+    if (needLogin && !user) return null;
+    // ownerId가 있고, 현재 로그인 사용자가 owner가 아니면 버튼 미노출
+    if (ownerId && user?._id !== ownerId) return null;
+    
+    const classes = getButtonClasses({ bgColor, size, className });
+    
+    return (
+      <Link
+        href={href}
+        className={classes}
+        {...rest}
+      >
+        {children}
+      </Link>
+    );
+  };
+  ```
+
+## 4.2 Button 컴포넌트 적용
+* 버튼 스타일의 `<button>` 대신 `<Button>`으로 수정
+* 버튼 스타일의 `<Link>` 대신 `<LinkButton>`으로 수정
+
+### 4.2.1 헤더
+* components/common/Header.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<button type="submit" className="...">로그아웃</button>` -> `<Button type="submit" size="sm" bgColor="gray">로그아웃</Button>`
+
+  - `<Link href="/login" className="...">로그인</Link>` -> `<LinkButton href="/login" size="sm" bgColor="orange">로그인</LinkButton>`
+
+  - `<Link href="/signup" className="...">회원가입</Link>` -> `<LinkButton href="/signup" size="sm" bgColor="gray">회원가입</LinkButton>`
+
+### 4.2.2 메인 화면
+* app/page.tsx
+
+  ```tsx
+  import { LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<Link href="/" className="...">커뮤니티 참여하기</Link>` -> `<LinkButton href="/" size="lg">커뮤니티 참여하기</LinkButton>`
+
+### 4.2.3 게시물 목록 조회 화면
+* app/[boardType]/page.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<button type="submit" className="...">검색</button>` -> `<Button type="submit">검색</Button>`
+
+  - ```<Link href={`/${boardType}/new`} className="...">글작성</Link>``` -> ```<LinkButton href={`/${boardType}/new`} needLogin>글작성</LinkButton>```
+  
+### 4.2.4 글작성 화면
+* app/[boardType]/new/RegistForm.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<button disabled={isPending} type="submit" className="...">등록</button>` -> `<Button disabled={isPending} type="submit">등록</Button>`
+
+  - ```<Link href={`/${boardType}`} className="...">취소</Link>``` -> ```<LinkButton href={`/${boardType}`} bgColor="gray">취소</LinkButton>```
+  
+### 4.2.5 게시물 상세 조회 화면
+* app/[boardType]/[_id]/page.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - ```<Link href={`/${boardType}`} className=...">목록</Link>``` -> ```<LinkButton href={`/${boardType}`}>목록</LinkButton>```
+
+  - ```<Link href={`/${boardType}/${_id}/edit`} className="...">수정</Link>``` -> ```<LinkButton href={`/${boardType}/${_id}/edit`} bgColor="gray" ownerId={post.user._id}>수정</LinkButton>```
+
+  - `<button type="submit" className="...` -> `<Button type="submit" bgColor="red" ownerId={post.user._id}>삭제</Button>`
+  
+### 4.2.6 게시물 수정 화면
+* app/[boardType]/[_id]/edit/page.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<button type="submit" className="...">수정</button>` -> `<Button type="submit">수정</Button>`
+
+  - ```<Link href={`/${boardType}/${_id}`} className="...">취소</Link>``` -> ```<LinkButton href={`/${boardType}/${_id}`} bgColor="gray">취소</LinkButton>```
+
+### 4.2.7 댓글 등록 화면
+* app/[boardType]/[_id]/CommentNew.tsx
+
+  ```tsx
+  import { Button } from "@/components/ui/Button";
+  ```
+
+  - `<button disabled={isPending} type="submit" className="...">댓글 등록</button>` -> `<Button disabled={isPending} type="submit">댓글 등록</Button>`
+
+### 4.2.8 회원 가입 화면
+* app/(user)/signup/SignupForm.tsx
+
+  ```tsx
+  import { Button, LinkButton } from "@/components/ui/Button";
+  ```
+
+  - `<button disabled={isPending} type="submit" className="...">회원가입</button>` -> `<Button disabled={isPending} type="submit">회원가입</Button`
+
+  - `<Link href="/" className="...">취소</Link>` -> `<LinkButton href="/" bgColor="gray">취소</LinkButton>`
+  
+### 4.2.9 로그인 화면
+
+  ```tsx
+  import { Button } from "@/components/ui/Button";
+  ```
+
+  - `<button disabled={isPending} type="submit" className="...">로그인</button>` -> `<Button disabled={isPending} type="submit">로그인</Button>`
+
+## 4.3 로그인 후 게시글 등록
+
+### 4.3.1 게시글 등록 페이지에 accessToken 추가
+* 로그인이 되지 않은 사용자일 경우 로그인 페이지로 이동
+* 로그인 된 사용자일 경우 서버 액션에 accessToken 전달
+* app/[boardType]/new/RegistForm.tsx
+
+  ```tsx
+  ...
+  import { useEffect } from "react";
+  import useUserStore from "@/zustand/userStore";
+  import { useRouter } from "next/navigation";
+
+  export default function RegistForm({ boardType }: { boardType: string }) {
+    const [ state, formAction, isPending ] = useActionState(createPost, null);
+    
+    const { user } = useUserStore();
+    const router = useRouter();
+
+    useEffect(() => {
+      if(!user){
+        // 렌더링 중에 페이지를 이동하면 에러가 발생하므로 렌더링 완료 후 이동한다.
+        router.replace(`/login?redirect=${boardType}/new`);
+      }
+    }, [user, router, boardType]);
+
+    return (
+      <>
+        { !user ? (
+          <div className="flex justify-center items-center min-h-[300px]">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 mb-4">
+              로그인 페이지로 이동합니다.
+            </h3>
+          </div>
+        ) : (
+          <form action={ formAction }>
+            {/* 로그인 된 사용자일 경우 서버 액션에 accessToken 전달 */}
+            <input type="hidden" name="accessToken" value={ user?.token?.accessToken ?? ''} />
+            ...
+          </form>
+        ) }
+      </>
+    );
+  }
+  ```
+
+### 4.3.2 게시글 등록 서버 액션에 accessToken 추가
+* createPost 서버 액션에서 API 호출 시 accessToken 전달
+* actions/post.ts
+
+  ```ts
+  export async function createPost(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const accessToken = formData.get('accessToken');
+    formData.delete('accessToken');
+    ...
+    'Client-Id': CLIENT_ID,
+    'Authorization': `Bearer ${accessToken}`,
+    ...
+  }
+  ```
+
+* 로그인 후 게시글 등록 테스트
+  - 로그인
+  - 게시글 등록
+  - 게시글 목록 조회에서 글쓴이가 로그인한 사용자인지 확인
+
+## 4.4 로그인 후 게시글 수정
+
+**목표**: 로그인한 사용자가 자신이 작성한 게시글을 수정할 수 있도록 구현
+
+### 4.4.1 서버 액션 추가
+
+**작업 내용**: 게시글 수정 서버 액션 추가
+
+**1단계: import 추가**
+* `actions/post.ts` 파일 상단에 `updateTag` import 추가
+
+  ```ts
+  import { revalidatePath, updateTag } from "next/cache";
+  ```
+
+**2단계: updatePost 함수 추가**
+* `actions/post.ts` 파일에 다음 함수 추가
+
+  ```ts
+  /**
+  * 게시글 수정
+  * @param {ActionState} prevState - 이전 상태(사용하지 않음)
+  * @param {FormData} formData - 게시글 정보를 담은 FormData 객체
+  * @returns {Promise<ActionState>} - 수정 결과 응답 객체
+  * @description
+  * 게시글을 수정하고, 성공 시 해당 게시글 상세 페이지로 이동
+  * 실패 시 에러 메시지를 반환
+  */
+  export async function updatePost(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const _id = formData.get('_id'); // 게시글 고유 ID
+    const type = formData.get('type'); // 게시판 타입
+    const accessToken = formData.get('accessToken'); // 인증 토큰
+
+    const body = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+    };
+
+    let res: Response;
+    let data: PostInfoRes | ErrorRes;
+    
+    try{
+      // 게시글 수정 API 호출
+      res = await fetch(`${API_URL}/posts/${_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Authorization': `Bearer ${accessToken}`, // 인증 토큰
+        },
+        body: JSON.stringify(body),
+      });
+
+      data = await res.json();
+      
+    }catch(error){ // 네트워크 오류 처리
+      console.error(error);
+      return { ok: 0, message: '일시적인 네트워크 문제가 발생했습니다.' };
+    }
+
+    // 수정 성공 시 해당 게시글 상세 페이지로 이동
+    if (data.ok) {
+      updateTag(`posts/${_id}`); // 게시글 상세 정보 캐시 무효화
+      updateTag(`posts?type=${type}`); // 게시글 목록 캐시 무효화
+      redirect(`/${type}/${_id}`);
+    }else{
+      return data;
+    }
+  }
+  ```
+
+### 4.4.2 캐시 무효화 태그 추가
+
+**작업 내용**: `lib/post.ts`의 fetch 함수에 캐시 태그 추가
+
+* `lib/post.ts` 파일 수정
+
+  ```ts
+  export async function getPosts(boardType: string): Promise<PostListRes | ErrorRes> {
+    ...
+      cache: 'force-cache',
+      next: {
+        tags: [`posts?type=${boardType}`],
+      },
+    ...
+  }
+
+  export async function getPost(_id: string): Promise<PostInfoRes | ErrorRes> {
+    ...
+      cache: 'force-cache',
+      next: {
+        tags: [`posts/${_id}`],
+      },
+    ...
+  }
+
+  export async function getReplies(_id: string): Promise<ReplyListRes | ErrorRes> {
+    ...
+      cache: 'force-cache',
+      next: {
+        tags: [`posts/${_id}/replies`],
+      },
+    ...
+  }
+  ```
+
+### 4.4.3 수정 페이지에 게시글 데이터 표시
+
+**작업 내용**: 수정 페이지에서 실제 게시글 데이터를 가져와서 폼에 표시
+
+**1단계: 게시글 데이터 조회**
+* `app/[boardType]/[_id]/edit/page.tsx` 파일 수정
+
+  ```tsx
+  import EditForm from "@/app/[boardType]/[_id]/edit/EditForm";
+  import { getPost } from "@/lib/post";
+  ...
+  export default async function EditPage({ params }: { params: Promise<{ boardType: string, _id: string }> }) {
+    const { _id } = await params;
+    const res = await getPost(_id);
+
+    if (!res.ok) {
+      return <div>{res.message}</div>;
+    }
+    
+    const post = res.item;
+
+    ...
+  }
+  ```
+
+#### 변경전
+```tsx
+<input ... defaultValue="리액트란?" />
+
+<textarea ... defaultValue="React는 UI를 ..." />
+```
+
+#### 변경후
+```tsx
+<input ... defaultValue={post.title} />
+
+<textarea ... defaultValue={post.content} />
+```
+
+### 4.4.4 클라이언트 컴포넌트 분리
+
+**작업 내용**: 폼을 클라이언트 컴포넌트로 분리하여 서버 액션 사용
+
+* app/[boardType]/[_id]/edit/EditForm.tsx 파일 생성
+
+  ```tsx
+  'use client';
+
+  import { Post } from "@/types";
+  import { LinkButton } from "@/components/ui/Button";
+  import { Button } from "@/components/ui/Button";
+  import { updatePost } from "@/actions/post";
+  import { useActionState } from "react";
+  import useUserStore from "@/zustand/userStore";
+
+  export default function EditForm({ post }: { post: Post }) {
+
+    const [postState, formAction] = useActionState(updatePost, null);
+
+    const { user } = useUserStore();
+
+    return (
+      <form action={ formAction }>
+        <div className="my-4">
+          <input type="hidden" name="accessToken" value={ user?.token?.accessToken ?? ''} />
+          <input type="hidden" name="_id" value={post._id} />
+          <input type="hidden" name="type" value={post.type} />
+          <label className="block text-lg content-center" htmlFor="title">제목</label>
+          <input
+            id="title"
+            type="text"
+            placeholder="제목을 입력하세요." 
+            className="w-full py-2 px-4 border rounded-md dark:bg-gray-700 border-gray-300 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            name="title"
+            defaultValue={post.title}
+          />
+
+          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
+            { postState?.ok === 0 && postState.errors?.title?.msg }
+          </p>
+
+        </div>
+        <div className="my-4">
+          <label className="block text-lg content-center" htmlFor="content">내용</label>
+          <textarea 
+            id="content"
+            rows={15} 
+            placeholder="내용을 입력하세요."
+            className="w-full p-4 text-sm border rounded-lg border-gray-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+            name="content"
+            defaultValue={post.content}
+          />
+
+          <p className="ml-2 mt-1 text-sm text-red-500 dark:text-red-400">
+            { postState?.ok === 0 && postState.errors?.content?.msg }
+          </p>
+
+        </div>
+        <hr />
+        <div className="flex justify-end my-6">
+          <Button type="submit">수정</Button>
+          <LinkButton href={`/${post.type}/${post._id}`}>취소</LinkButton>
+        </div>
+      </form>
+    )
+  }
+  ```
+
+### 4.4.5 게시글 수정 테스트
+
+**테스트 항목**:
+1. 로그인 후 자신이 작성한 게시글의 수정 버튼 클릭
+2. 제목과 내용 수정 후 저장
+3. 상세 페이지에서 수정된 내용이 바로 반영되는지 확인
+4. 목록 페이지에서도 수정된 제목이 표시되는지 확인
+
+## 4.5 로그인 후 게시글 삭제
+### 4.5.1 서버 액션 추가
+* 게시글 삭제 서버 액션 추가
+* actions/post.ts에 추가
+
+  ```ts
+  /**
+  * 게시글 삭제
+  * @param {ActionState} prevState - 이전 상태(사용하지 않음)
+  * @param {FormData} formData - 삭제할 게시글 정보를 담은 FormData 객체
+  * @returns {Promise<ActionState>} - 삭제 결과 응답 객체
+  * @throws {Error} - 네트워크 오류 발생 시
+  * @description
+  * 게시글을 삭제하고, 성공 시 해당 게시판 목록 페이지로 리다이렉트
+  * 실패 시 에러 메시지를 반환
+  */
+  export async function deletePost(prevState: ActionState, formData: FormData): Promise<ActionState> {
+    const _id = formData.get('_id');
+    const type = formData.get('type');
+    const accessToken = formData.get('accessToken');
+
+    let res: Response;
+    let data: DeleteRes | ErrorRes;
+    
+    try{
+      res = await fetch(`${API_URL}/posts/${_id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      data = await res.json();
+      
+    }catch(error){ // 네트워크 오류 처리
+      console.error(error);
+      return { ok: 0, message: '일시적인 네트워크 문제가 발생했습니다.' };
+    }
+
+    if (data.ok) {
+      updateTag(`posts/${_id}`);
+      updateTag(`posts?type=${type}`);
+      redirect(`/${type}`);
+    }else{
+      return data;
+    }
+  }
+  ```
+
+### 4.5.2 클라이언트 컴포넌트 분리
+* app/[boardType]/[_id]/DeleteForm.tsx 파일 생성
+
+  ```tsx
+  'use client';
+
+  import { Button } from "@/components/ui/Button";
+  import { deletePost } from "@/actions/post";
+  import useUserStore from "@/zustand/userStore";
+  import { useActionState } from "react";
+
+  export default function DeleteForm({ boardType, _id, ownerId }: { boardType: string, _id: string, ownerId: number }) {
+    const { user } = useUserStore();
+    const [state, formAction, isPending] = useActionState(deletePost, null);
+    console.log(state, isPending);
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+      if (!window.confirm("정말 삭제하시겠습니까?")) event.preventDefault();
+    };
+
+    return (
+      <form action={formAction} onSubmit={handleSubmit}>
+        <input type="hidden" name="_id" value={_id} />
+        <input type="hidden" name="type" value={boardType} />
+        <input type="hidden" name="accessToken" value={user?.token?.accessToken ?? ''} />
+        <Button type="submit" bgColor="red" ownerId={ownerId}>삭제</Button>
+      </form>
+    );
+  }
+  ```
+
+#### 4.5.3 app/[boardType]/[_id]/page.tsx 수정
+* `<form>` 삭제
+* `삭제` 버튼을 DeleteForm 컴포넌트로 수정
+
+##### 변경전
+```tsx
+<section className="mb-8 p-4">
+  <form action={`/${boardType}`}>
+    <div className="flex justify-end my-4">
+      <LinkButton href={`/${boardType}`}>목록</LinkButton>
+      <LinkButton href={`/${boardType}/${_id}/edit`} bgColor="gray" ownerId={post.user._id}>수정</LinkButton>
+      <Button type="submit" bgColor="red" ownerId={post.user._id}>삭제</Button>
+    </div>
+  </form>
+</section>
+```
+
+##### 변경후
+```tsx
+<section className="mb-8 p-4">
+  <div className="flex justify-end my-4">
+    <LinkButton href={`/${boardType}`}>목록</LinkButton>
+    <LinkButton href={`/${boardType}/${_id}/edit`} bgColor="gray" ownerId={post.user._id}>수정</LinkButton>
+    <DeleteForm boardType={boardType} _id={_id} ownerId={post.user._id} />
+  </div>
+</section>
+```
+
+* 게시글 삭제 테스트
+
+## 4.6 로그인 후 댓글 등록
+
+### 4.6.1 댓글 등록 서버 액션에 accessToken 추가
+* 댓글 등록 서버 액션에 accessToken 추가
+* actions/post.ts의 createReply 서버 액션 수정
+  - Authorization 헤더 추가
+
+    ```tsx
+    export async function createReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
+      ...
+      headers: {
+        ...
+        'Authorization': `Bearer ${body.accessToken}`,
+      },
+      ...
+    }
+    ```
+  - 캐시 무효화 코드 수정
+    - revalidatePath로 지정되어 있을 경우(위의 가이드에서 잘못 작성함) 다음 처럼 수정
+    - ```revalidatePath(`/${body.type}/${body._id}/replies`);``` -> ```updateTag(`posts/${body._id}/replies`);```
+
+### 4.6.2 댓글 등록 페이지 수정
+* app/[boardType]/[_id]/CommentNew.tsx 수정
+
+  ```tsx
+  ...
+  import useUserStore from "@/zustand/userStore";
+
+  export default function CommentNew({ boardType, _id }: { boardType: string, _id: string }) {
+    ...
+    const { user } = useUserStore();
+    return (
+      <div className="p-4 border border-gray-200 rounded-lg">
+        <h4 className="mb-4">새로운 댓글을 추가하세요.</h4>
+        { !user ? (
+          <p><LinkButton href={`/login?redirect=/${boardType}/${_id}`} size="sm">로그인</LinkButton> 후 이용해주세요.</p>
+        ) : (
+          <form action={formAction}>
+            <input type="hidden" name="accessToken" value={ user?.token?.accessToken ?? ''} />
+            ...
+          </form>
+        )}
+      </div>
+    );
+  }
+  ```
+
+* 댓글 등록 테스트
+
+## 4.7 로그인 후 댓글 삭제
+### 4.7.1 서버 액션 추가
+* 댓글 삭제 서버 액션 추가
+* actions/post.ts에 추가
+
+  ```tsx
+  type DeleteReplyActionState = DeleteRes | ErrorRes | null;
+  /**
+  * 댓글 삭제
+  * @param {DeleteReplyActionState} prevState - 이전 상태(사용하지 않음)
+  * @param {FormData} formData - 삭제할 댓글 정보를 담은 FormData 객체
+  * @returns {Promise<DeleteReplyActionState>} - 삭제 결과 응답 객체
+  * @description
+  * 댓글을 삭제하고, 성공 시 해당 게시글의 댓글 목록을 갱신
+  */
+  export async function deleteReply(prevState: DeleteReplyActionState, formData: FormData): Promise<DeleteReplyActionState> {
+    const _id = formData.get('_id');
+    const replyId = formData.get('replyId');
+    const accessToken = formData.get('accessToken');
+
+    let res: Response;
+    let data: DeleteRes | ErrorRes;
+    
+    try{
+      res = await fetch(`${API_URL}/posts/${_id}/replies/${replyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Client-Id': CLIENT_ID,
+          'Authorization': `Bearer ${accessToken}`,
+        },
+      });
+
+      data = await res.json();
+      
+    }catch(error){ // 네트워크 오류 처리
+      console.error(error);
+      return { ok: 0, message: '일시적인 네트워크 문제가 발생했습니다.' };
+    }
+
+    if (data.ok) {
+      updateTag(`posts/${_id}/replies`);
+    }
+    
+    return data;
+  }
+  ```
+
+### 4.7.2 클라이언트 컴포넌트 분리
+* app/[boardType]/[_id]/CommentDeleteForm.tsx 파일 생성
+
+  ```tsx
+  'use client';
+
+  import { Button } from "@/components/ui/Button";
+  import { deleteReply } from "@/actions/post";
+  import { Reply } from "@/types";
+  import useUserStore from "@/zustand/userStore";
+  import { useActionState, useEffect } from "react";
+  import { useParams, useRouter } from "next/navigation";
+
+  export default function CommentDeleteForm({ reply }: { reply: Reply }) {
+    const { type, _id } = useParams();
+    const router = useRouter();
+
+    const { user } = useUserStore();
+    const [state, formAction, isPending] = useActionState(deleteReply, null);
+
+    // 서버 액션 결과에 따라 처리
+    useEffect(() => {
+      if (state?.ok === 1) {
+        // 성공 시: 서버 컴포넌트를 다시 렌더링하여 댓글 목록 갱신
+        router.refresh();
+      }
+      if (state?.ok === 0) {
+        // 실패 시: 사용자에게 메시지 표시
+        alert(state?.message);
+      }
+    }, [state, router]);
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+      if (!window.confirm('댓글을 삭제하시겠습니까?')) event.preventDefault();
+    };
+    
+    return (
+      <form action={formAction} onSubmit={handleSubmit} className="inline ml-2">
+        <input type="hidden" name="type" value={type} />
+        <input type="hidden" name="_id" value={_id} />
+        <input type="hidden" name="replyId" value={reply._id} />
+        <input type="hidden" name="accessToken" value={user?.token?.accessToken ?? ''} />
+        <Button disabled={isPending} type="submit" bgColor="red" size="sm" ownerId={reply.user._id}>삭제</Button>
+      </form>
+    )
+  }
+  ```
+
+* app/[boardType]/[_id]/CommentItem.tsx 수정
+
+  ```tsx
+  import CommentDeleteForm from "@/app/[boardType]/[_id]/CommentDeleteForm";
+  ```
+
+  - `<form>`을 삭제하고 `<CommentDeleteForm reply={ reply } />`로 교체
+
+* 댓글 삭제 테스트
+
+## 4.8 전체 기능 테스트
+- http://localhost:3000 접속
+
+## 4.9 Step 04 완료
+* 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-next-04
