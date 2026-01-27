@@ -166,6 +166,8 @@ We detected multiple lockfiles and selected the directory of ...
   - `<img> ` -> `<Image>`
 
 * 외부 이미지 로딩시 next.config.ts 설정 추가
+  - api 서버에 업로드한 이미지는 [cloudinary](http://cloudinary.com) 서버에 업로드되어 관리되므로 next.config.ts에 다음 설정 추가
+
   ```ts
   import type { NextConfig } from "next";
 
@@ -177,7 +179,7 @@ We detected multiple lockfiles and selected the directory of ...
           protocol: 'https',
           hostname: 'res.cloudinary.com',
           // port: '',
-          // pathname: '/market/files/**',
+          pathname: '/ddedslqvv/image/upload/**',
         },
       ],
     },
