@@ -463,7 +463,7 @@ export default MainPage;
 ### 1.3.2 RouterProvider 추가
 * App.tsx 수정
   ```tsx
-  import { RouterProvider } from "react-router-dom";
+  import { RouterProvider } from "react-router";
   import router from "@/routes";
 
   function App() {
