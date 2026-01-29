@@ -377,7 +377,7 @@ export default MainPage;
 * lion-board-template-react 폴더의 각 html 파일에 있는 `<main>` 태그 복사한 후 JSX 문법으로 수정
   - List.tsx: lion-board-template-react/info/index.html의 `<main>` 태그 복사
     - ListItem.tsx: List.tsx에서 `<tbody>` 내부의 `<tr>` 영역 분리
-  - Detail.tsx: lion-board-template-react/info/1.html의 `<main>` 태그 복사
+  - Detail.tsx: lion-board-template-react/info/1/index.html의 `<main>` 태그 복사
     - CommentList.tsx: Detail.tsx에서 `<section className="mb-8">` 영역 분리
       - CommentListItem.tsx: CommentList.tsx에서 `<div className="shadow-md rounded-lg p-4 mb-4">` 영역 분리
       - CommentNew.tsx: CommentList.tsx에서 `<div className="p-4 border border-gray-200 rounded-lg">` 영역 분리
