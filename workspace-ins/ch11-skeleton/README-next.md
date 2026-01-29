@@ -166,6 +166,8 @@ We detected multiple lockfiles and selected the directory of ...
   - `<img> ` -> `<Image>`
 
 * 외부 이미지 로딩시 next.config.ts 설정 추가
+  - api 서버에 업로드한 이미지는 [cloudinary](http://cloudinary.com) 서버에 업로드되어 관리되므로 next.config.ts에 다음 설정 추가
+
   ```ts
   import type { NextConfig } from "next";
 
@@ -177,7 +179,7 @@ We detected multiple lockfiles and selected the directory of ...
           protocol: 'https',
           hostname: 'res.cloudinary.com',
           // port: '',
-          // pathname: '/market/files/**',
+          pathname: '/ddedslqvv/image/upload/**',
         },
       ],
     },
@@ -3104,7 +3106,7 @@ lion-board-next-02/
 
 # 4 Step 04 - 나머지 기능 구현(API 서버 연동)
 
-**목표**: 
+**목표**: 로그인 이후에 해야할 작업. 게시글 등록/수정/삭제, 댓글 등록/삭제 기능 구현
 
 **준비 작업**:
 * workspace/ch11-skeleton 폴더에서 실행
