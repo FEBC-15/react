@@ -4379,11 +4379,11 @@ export async function createReply(prevState: ReplyActionState, formData: FormDat
       },
       body: JSON.stringify({
         type: 'reply',
-        target_id: body.userId,
+        target_id: Number(body.targetId),
         content: body.content,
         extra: {
           boardType: body.type,
-          postId: body._id,
+          postId: Number(body._id),
         },
       }),
     });
@@ -4394,6 +4394,91 @@ export async function createReply(prevState: ReplyActionState, formData: FormDat
   
   ...
 }
+```
+
+- /app/[boardType]/[_id]/CommentNew.tsx 수정
+  - createReply 액션에 작성자 id를 추가로 전달해야 하므로 props를 post로 수정
+
+```tsx
+'use client';
+import { createReply } from "@/actions/post";
+import { Button, LinkButton } from "@/components/ui/Button";
+import { Post } from "@/types";
+import useUserStore from "@/zustand/userStore";
+import { useActionState } from "react";
+
+export default function CommentNew({ post }: { post: Post }) {
+  const [state, formAction, isPending] = useActionState(createReply, null);
+  const { user } = useUserStore();
+
+  return (
+    <div className="p-4 border border-gray-200 rounded-lg">
+      <h4 className="mb-4">새로운 댓글을 추가하세요.</h4>
+      {!user ? (
+        <p><LinkButton href={`/login?redirect=/${post.type}/${post._id}`} size="sm">로그인</LinkButton> 후 이용해주세요.</p>
+      ) : (
+        <form action={formAction}>
+          <input type="hidden" name="_id" value={post._id} />
+          <input type="hidden" name="type" value={post.type} />
+          <input type="hidden" name="accessToken" value={user?.token?.accessToken ?? ''} />
+          <input type="hidden" name="targetId" value={post.user._id} />
+          <div className="mb-4">
+            <textarea
+              rows={3}
+              cols={40}
+              className="block p-2 w-full text-sm border rounded-lg border-gray-300 bg-gray-50 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
+              placeholder="내용을 입력하세요."
+              name="content"></textarea>
+
+            <p className="ml-2 mt-1 text-sm text-red-500">
+              {state?.ok === 0 && state.errors?.content?.msg}
+            </p>
+
+          </div>
+          <Button disabled={isPending} type="submit">댓글 등록</Button>
+        </form>
+      )}
+    </div>
+  );
+}
+```
+
+- /app/[boardType]/[_id]/CommentList.tsx 수정
+  - CommentNew에 전달할 props에 작성자 id를 추가해야 하므로 post로 수정
+
+```tsx
+import CommentItem from "@/app/[boardType]/[_id]/CommentItem";
+import CommentNew from "@/app/[boardType]/[_id]/CommentNew";
+import { getReplies } from "@/lib/post";
+import { Post } from "@/types";
+
+export default async function CommentList({ post }: { post: Post }) {
+  const res = await getReplies(String(post._id));
+  console.log('CommentList', res);
+  return (
+    <section className="mb-8">
+      <h4 className="mt-8 mb-4 ml-2">댓글 {res.ok ? res.item.length : 0}개</h4>
+      {res.ok ? (
+        res.item.map((reply) => (
+          <CommentItem key={reply._id} reply={reply} />
+        ))
+      ) : (
+        <p>{res.message}</p>
+      )}
+
+      <CommentNew post={post} />
+    </section>
+  );
+}
+```
+
+- /app/[boardType]/[_id]/page.tsx 수정
+  - CommentList에 전달할 props에 작성자 id를 추가해야 하므로 post로 수정
+
+```tsx
+...
+<CommentList post={post} />
+...
 ```
 
 #### 테스트
