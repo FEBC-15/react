@@ -4205,7 +4205,7 @@ export function useNoti() {
 }
 ```
 
-#### useNoti 커스텀 훅 구현
+#### NotificationBadge 구현
 헤더에 알림 뱃지 추가
 
 - /app/guide/notification/_components/NotificationBadge.tsx 작성
@@ -4357,3 +4357,44 @@ import NotificationBadge from "@/app/guide/notification/_components/Notification
 
 ...
 ```
+
+#### 댓글 등록시 게시글 작성자에게 알림 전송
+- /actions/post.ts 수정
+
+```ts
+export async function createReply(prevState: ReplyActionState, formData: FormData): Promise<ReplyActionState> {
+  ...
+
+  try{
+    // 댓글 등록
+    ...
+    
+    // 댓글 등록 알림 메시지 전송
+    await fetch(`${API_URL}/notifications`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Client-Id': CLIENT_ID,
+        'Authorization': `Bearer ${body.accessToken}`,
+      },
+      body: JSON.stringify({
+        type: 'reply',
+        target_id: body.userId,
+        content: body.content,
+        extra: {
+          boardType: body.type,
+          postId: body._id,
+        },
+      }),
+    });
+
+  }catch(error){ // 네트워크 오류 처리
+    ...
+  }
+  
+  ...
+}
+```
+
+#### 테스트
+- 댓글 등록 후 게시글 작성자의 알림위젯에 읽지 않은 알림 수 증가 확인
