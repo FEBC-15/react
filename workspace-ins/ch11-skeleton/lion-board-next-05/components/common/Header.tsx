@@ -4,6 +4,7 @@ import useUserStore from "@/zustand/userStore";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, LinkButton } from "@/components/ui/Button";
+import NotificationBadge from "@/app/guide/notification/_components/NotificationBadge";
 
 export default function Header() {
   const { user, resetUser } = useUserStore();
@@ -35,13 +36,13 @@ export default function Header() {
             <form onSubmit={handleLogout}>
               <p className="flex items-center">
                 <Image
-                  className="w-8 rounded-full mr-2" 
+                  className="w-8 rounded-full mr-2"
                   src={user.image || '/images/favicon.svg'}
                   alt={`${user.name}님 프로필 이미지`}
                   width="24"
                   height="24"
                 />
-                용쌤님
+                {user.name}님
                 <Button type="submit" size="sm" bgColor="gray">로그아웃</Button>
               </p>
             </form>
@@ -51,6 +52,8 @@ export default function Header() {
               <LinkButton href="/signup" size="sm" bgColor="gray">회원가입</LinkButton>
             </div>
           )}
+
+          <NotificationBadge />
 
           <button
             type="button"
