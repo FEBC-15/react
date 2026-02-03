@@ -44,7 +44,11 @@
   - [4.6 로그인 후 댓글 등록](#46-로그인-후-댓글-등록)
   - [4.7 로그인 후 댓글 삭제](#47-로그인-후-댓글-삭제)
   - [4.8 전체 기능 테스트](#48-전체-기능-테스트)
-
+- [5 Step 05 - 기타 기능 추가](#5-step-05---기타-기능-추가)
+  - [5.1 결제](#51-결제)
+  - [5.2 알림톡](#52-알림톡)
+  - [5.3 웹소켓을 이용한 실시간 알림](#53-웹소켓을-이용한-실시간-알림)
+  
 # 0 개발 준비
 
 ## 0.1 샘플 코드 테스트
@@ -3926,3 +3930,430 @@ lion-board-next-02/
 
 ## 4.9 Step 04 완료
 * 완성된 코드 참고: https://github.com/FEBC-15/react/tree/main/workspace-ins/ch11-skeleton/lion-board-next-04
+
+# 5 Step 05 - 기타 기능 추가
+
+**목표**: 결제, 알림톡, 실시간 알림, 채팅 기능 추가
+
+**준비 작업**:
+* workspace/ch11-skeleton 폴더에서 실행
+
+  ```sh
+  # lion-board-next-04/.next와 node_modules 폴더 삭제
+  rm -rf lion-board-next-04/.next lion-board-next-04/node_modules && echo "삭제 완료"
+  # lion-board-next-04 폴더를 복사해서 lion-board-next-05 폴더 생성
+  cp -r lion-board-next-04 lion-board-next-05 && echo "복사 완료"
+  # 복사한 폴더로 이동
+  cd lion-board-next-05
+  # 패키지 설치
+  npm i
+  ```
+
+* lion-board-next-05/components/common/Header.tsx 파일 수정
+  - `라이언 보드 v.04` -> `라이언 보드 v.05`
+  
+## 5.1 결제
+
+## 5.2 알림톡
+
+## 5.3 웹소켓을 이용한 실시간 알림
+
+### 5.3.1 WebSocket이란?
+WebSocket은 웹 브라우저와 웹 서버 간의 전이중(Full-duplex), 양방향(Bi-directional) 통신을 실시간으로 제공하기 위한 프로토콜
+
+### 5.3.2 등장 배경
+- 기존의 HTTP는 클라이언트가 요청을 보내면 서버가 응답하는 일방향적인 무상태(Stateless) 프로토콜임
+- 실시간 데이터를 받기 위해 Polling, Long Polling, Streaming 같은 기술이 사용되었으나 비효율적임
+- 이를 해결하기 위해 HTML5 표준의 일부로 연결 지향적인 WebSocket이 등장함
+
+### 5.3.3 주요 특징
+- 양방향 통신: 서버와 클라이언트가 원할 때 언제든 데이터를 보낼 수 있음
+- 실시간성: HTTP 요청-응답의 오버헤드가 없어 데이터 전송 속도가 매우 빠름
+- 최소한의 오버헤드: 매번 헤더 정보를 보낼 필요가 없어 네트워크 부하가 적음
+- 동일 포트 공유: HTTP(80) 및 HTTPS(443) 포트를 그대로 사용하여 방화벽 설정에 유리함
+
+### 5.3.4 HTTP vs WebSocket
+| 특징 | HTTP | WebSocket |
+| :--- | :--- | :--- |
+| 통신 방식 | 단방향 (요청 -> 응답) | 양방향 (전이중) |
+| 연결성 | 비연결성 (Connectionless) | 연결 유지 (Connection-oriented) |
+| 상태 유지 | 무상태 (Stateless) | 상태 유지 (Stateful) |
+| 헤더 크기 | 매 요청마다 큼 | 연결 후에는 매우 작음 |
+| 적합한 사례 | 문서 조회, 리소스 전송 | 채팅, 주식 전표, 실시간 알림, 게임 |
+
+### 5.3.5 WebSocket 동작 방식
+
+#### 핸드쉐이크 (Handshake)
+WebSocket 통신은 HTTP 프로토콜을 통해 시작됨. 클라이언트가 서버로 연결 요청을 보낼 때 Upgrade 헤더를 통해 WebSocket으로 프로토콜 전환을 요청함.
+
+- **Request 헤더 예시**:
+```http
+GET /ws/sample HTTP/1.1
+Host: fesp-api.koyeb.app
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+Sec-WebSocket-Version: 13
+```
+
+- **Response 헤더 예시**:
+```http
+HTTP/1.1 101 Switching Protocols
+Upgrade: websocket
+Connection: Upgrade
+Sec-WebSocket-Accept: s3pPLMBiTxaQ9kYGzzhZRbK+xOo=
+```
+상태 코드 101을 받으면 성공적으로 WebSocket으로 전환됨.
+
+### 5.3.6 기본 WebSocket API
+
+#### 객체 생성 및 연결
+```js
+// ws (일반) 또는 wss (보안) 프로토콜 사용
+const socket = new WebSocket('wss://fesp-api.koyeb.app/ws/sample');
+```
+
+#### 이벤트 처리
+- onopen: 연결이 성공했을 때 발생
+- onmessage: 서버로부터 메시지를 받았을 때 발생
+- onerror: 통신 중 에러가 발생했을 때 발생
+- onclose: 연결이 닫혔을 때 발생
+
+#### 메시지 전송 및 종료(WebSocket 객체의 메서드)
+- send(data): 데이터를 전송 (문자열, ArrayBuffer, Blob 가능)
+- close(): 연결을 명시적으로 종료
+
+#### 사용 예시
+```js
+const socket = new WebSocket('wss://fesp-api.koyeb.app/ws/sample');
+
+socket.onopen = (event) => {
+  console.log('연결 성공');
+  socket.send('안녕하세요!');
+};
+
+socket.onmessage = (event) => {
+  console.log('메시지 수신:', event.data);
+};
+
+socket.onclose = () => {
+  console.log('연결 종료');
+};
+```
+
+### 5.3.7 Socket.io 라이브러리
+기본 WebSocket은 모든 기능을 직접 구현해야 하지만, Socket.io는 실시간 통신을 위한 다양한 편의 기능을 제공하는 라이브러리
+
+#### 특징
+- 자동 재연결: 연결이 끊기면 자동으로 다시 연결을 시도함
+- 폴백(Fallback) 지원: WebSocket을 지원하지 않는 환경에서는 HTTP Polling으로 자동 전환
+- 이벤트 기반: 메시지마다 이름을 붙여 분기 처리 가능 (socket.on('chat', ...) 등)
+- 브로드캐스팅: 연결된 모든 클라이언트 혹은 특정 대상에게 쉽게 전송 가능
+
+#### 주요 기능 (Namespace & Room)
+- Namespace: 하나의 서버 물리적 연결 안에서 채널을 분리 (/noti, /private-chat 등)
+- Room: 같은 네임스페이스 안에서 특정 그룹에만 메시지를 전송할 때 사용 (socket.join('room1'))
+
+### 5.3.8 실시간 알림 기능 구현
+
+#### socket.io-client 설치
+``sh
+npm i socket.io-client
+``
+
+#### .env 파일에 실시간 알림 서버 주소 추가
+```
+...
+NEXT_PUBLIC_NOTI_URL=https://fesp-api.koyeb.app/noti
+```
+
+#### 타입 추가
+Notification 관련 타입 추가
+
+- /app/guide/notification/_types/notification.ts 작성
+
+```ts
+import { User } from "@/types/user";
+
+export interface Notification {
+  _id: string;
+  target_id: number;
+  content: string;
+  type?: string;
+  channel?: string;
+  extra?: {
+    boardType: string;
+    postId: string;
+  };
+  user: User;
+  isRead: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface NewNotification {
+  newNoti: Notification;
+  list: Notification[];
+}
+
+```
+
+#### useNotiStore 작성
+소켓 객체와 알림 목록을 전역 상태로 관리함.
+
+- /app/guide/notification/_zustand/notiStore.ts 작성
+
+```ts
+import { create } from 'zustand';
+import { Socket } from 'socket.io-client';
+import { Notification } from '@/app/guide/notification/_types/notification';
+
+interface NotiStoreState {
+  notiSocket: Socket | null;
+  setNotiSocket: (socket: Socket | null) => void;
+  notifications: Notification[];
+  setNotifications: (notifications: Notification[]) => void;
+}
+
+const useNotiStore = create<NotiStoreState>((set) => ({
+  notiSocket: null,
+  setNotiSocket: (socket) => set({ notiSocket: socket }),
+  notifications: [],
+  setNotifications: (notifications) => set({ notifications }),
+}));
+
+export default useNotiStore;
+```
+
+#### useNoti 커스텀 훅 구현
+실시간 알림 서버와 통신하여 알림 목록을 관리하는 커스텀 훅 작성
+
+- /app/guide/notification/_hooks/useNoti.tsx
+
+```tsx
+import { useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
+import useUserStore from '@/zustand/userStore';
+import { NewNotification } from '@/app/guide/notification/_types/notification';
+import useNotiStore from '@/app/guide/notification/_zustand/notiStore';
+
+let globalNotiSocket: Socket | null = null;
+let isConnecting = false;
+
+export function useNoti() {
+  const user = useUserStore(state => state.user);
+  const userId = user?._id;
+  
+  const { 
+    notiSocket, setNotiSocket, 
+    notifications, setNotifications 
+  } = useNotiStore();
+
+  useEffect(() => {
+    if (!userId || notiSocket || isConnecting) return;
+
+    // 싱글톤 패턴: globalNotiSocket을 사용하여 컴포넌트가 리렌더링되더라도 소켓이 불필요하게 여러 번 생성되지 않도록 관리함
+    if (globalNotiSocket) {
+      setNotiSocket(globalNotiSocket);
+      return;
+    }
+
+    isConnecting = true;
+    console.log('알림서버 연결 시도...');
+
+    // 2. 소켓 연결 생성
+    const socket = io(`${process.env.NEXT_PUBLIC_NOTI_URL}/${process.env.NEXT_PUBLIC_CLIENT_ID}`, {
+      reconnectionAttempts: 5,
+    });
+    
+    globalNotiSocket = socket;
+    setNotiSocket(socket);
+
+    // 3. 이벤트 리스너 등록
+    socket.on('connect', () => {
+      console.log('알림서버 연결 완료');
+      isConnecting = false;
+      // 서버에 사용자 ID 등록 (해당 사용자용 알림을 받기 위함)
+      socket.emit('setUserId', userId);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('알림서버 연결 해제');
+    });
+
+    // 서버에서 'notification' 이벤트로 데이터를 보낼 때 처리
+    socket.on('notification', (data: NewNotification) => {
+      console.log('알림 수신:', data);
+      if (data.newNoti) {
+        // 새 알림 한 건 추가
+        const currentNotis = useNotiStore.getState().notifications;
+        setNotifications([...currentNotis, data.newNoti]);
+      } else if (data.list) {
+        // 전체 알림 목록으로 갱신
+        setNotifications(data.list);
+      }
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error('알림서버 연결 실패:', err.message);
+      isConnecting = false;
+    });
+
+  }, [userId, notiSocket, setNotiSocket, setNotifications]);
+
+  return { notifications, setNotifications };
+}
+```
+
+#### useNoti 커스텀 훅 구현
+헤더에 알림 뱃지 추가
+
+- /app/guide/notification/_components/NotificationBadge.tsx 작성
+
+```tsx
+'use client'
+
+import { useNoti } from "@/app/guide/notification/_hooks/useNoti";
+import useUserStore from "@/zustand/userStore";
+import Link from 'next/link';
+import { useState, useRef, useEffect } from "react";
+
+export default function NotificationBadge() {
+  const { notifications, setNotifications } = useNoti();
+  const user = useUserStore(state => state.user);
+  const [showNotiTooltip, setShowNotiTooltip] = useState(false);
+  const notiRef = useRef<HTMLDivElement>(null);
+
+  const toggleNotiTooltip = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowNotiTooltip(!showNotiTooltip);
+  };
+
+  const handleReadAll = async () => {
+    if (notifications.length > 0) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/notifications/read`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'client-id': process.env.NEXT_PUBLIC_CLIENT_ID!,
+            'Authorization': `Bearer ${user?.token?.accessToken}`
+          }
+        });
+        const data = await res.json();
+        if (res.ok && data.item) {
+          setNotifications(data.item);
+        }
+      } catch (err) {
+        console.error('전체 읽음 처리 실패:', err);
+      }
+    }
+  };
+
+  // 툴팁 상태 변화 감지 (열려있다 닫힐 때 읽음 처리)
+  const prevShow = useRef(showNotiTooltip);
+  useEffect(() => {
+    if (prevShow.current === true && showNotiTooltip === false) {
+      handleReadAll();
+    }
+    prevShow.current = showNotiTooltip;
+  }, [showNotiTooltip]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notiRef.current && !notiRef.current.contains(event.target as Node)) {
+        setShowNotiTooltip(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="relative" ref={notiRef}>
+      <Link
+        href="#"
+        onClick={toggleNotiTooltip}
+        className="ml-4 relative flex items-center w-8 h-8 justify-center text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-blue-700 focus:z-10 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500 dark:bg-gray-800 focus:outline-none dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+      >
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        {notifications.length > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white">
+            {notifications.length}
+          </span>
+        )}
+        <span className="sr-only">알림함 목록</span>
+      </Link>
+
+      {showNotiTooltip && (
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden transform origin-top-right transition-all duration-200 scale-100 opacity-100">
+          <div className="p-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-900">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200">새로운 알림</h3>
+            <span className="text-[10px] text-gray-400">최근 {notifications.length}건</span>
+          </div>
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <p className="text-sm">수신된 알림이 없습니다.</p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-gray-100 dark:divide-gray-700">
+                {notifications.map((noti) => (
+                  <li key={noti._id} className="p-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors group">
+                    <div className="flex justify-between items-start gap-2">
+                      <Link href={`/${noti.extra?.boardType}/${noti.extra?.postId}`} onClick={() => setShowNotiTooltip(false)} className="flex-1">
+                        <div className="flex flex-col gap-1">
+                          <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2">
+                            {noti.content}
+                          </p>
+                          <span className="text-[10px] text-gray-400">
+                            {new Date(noti.createdAt).toLocaleString()}
+                          </span>
+                        </div>
+                      </Link>
+                      <button
+                        className="p-1 text-gray-400 hover:text-orange-500 transition-colors"
+                        title="읽음 표시"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+- /components/common/Header.tsx 수정
+
+```tsx
+import NotificationBadge from "@/app/guide/notification/_components/NotificationBadge";
+
+...
+
+{user ? (
+  <form onSubmit={handleLogout}>
+    ...
+  </form>
+) : (
+  <div className="flex justify-end">
+    ...
+  </div>
+)}
+
+<NotificationBadge />
+
+...
+```
