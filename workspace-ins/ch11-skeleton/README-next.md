@@ -4483,3 +4483,1211 @@ export default async function CommentList({ post }: { post: Post }) {
 
 #### 테스트
 - 댓글 등록 후 게시글 작성자의 알림위젯에 읽지 않은 알림 수 증가 확인
+
+## 5.4 실시간 채팅
+- 설명은 소스코드의 주석 참고
+
+### 5.4.1 채팅 서버 주소 추가
+- .env
+
+```tsx
+...
+NEXT_PUBLIC_PRIVATE_CHAT_URL=https://fesp-api.koyeb.app/private-chat
+```
+
+### 5.4.2 Author 컴포넌트 작성
+- /components/ui/Author.tsx
+
+```tsx
+'use client'
+
+import Link from "next/link";
+import { Post, PostListItem } from "@/types";
+import { useState, useRef, useEffect } from "react";
+
+export default function Author({ post }: { post: Post | PostListItem }) {
+  const [showTooltip, setShowTooltip] = useState(false);
+  const authorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (authorRef.current && !authorRef.current.contains(event.target as Node)) {
+        setShowTooltip(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  return (
+    <div className="relative inline-block" ref={authorRef}>
+      <span
+        className="cursor-pointer text-blue-600 dark:text-blue-400 hover:text-orange-500 hover:underline font-medium"
+        onClick={() => setShowTooltip(!showTooltip)}
+      >
+        {post.user.name}
+      </span>
+      {showTooltip && (
+        <div className="absolute bottom-full left-0 pb-1 z-50 whitespace-nowrap">
+          <div className="relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg w-28 text-center">
+            <div className="absolute -bottom-1.5 left-4 w-3 h-3 bg-white dark:bg-gray-800 border-b border-r border-gray-200 dark:border-gray-700 transform rotate-45"></div>
+
+            <div className="relative z-10 bg-white dark:bg-gray-800 rounded-md overflow-hidden">
+              <Link
+                href={`/guide/chat?user_id=${post.user._id}`}
+                onClick={() => setShowTooltip(false)}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-gray-600 dark:hover:text-white border-b dark:border-gray-700 last:border-0"
+              >
+                쪽지
+              </Link>
+              <Link
+                href={`/guide/chat?post_id=${post._id}`}
+                onClick={() => setShowTooltip(false)}
+                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-gray-600 dark:hover:text-white"
+              >
+                게시글 문의
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+}
+
+```
+
+- /app/[boardType]/ListItem.tsx
+
+```tsx
+import Author from "@/components/ui/Author";
+...
+<td className="p-2 text-center relative overflow-visible">
+  <Author post={post} />
+</td>
+...
+```
+
+- /app/[boardType]/[_id]/page.tsx
+
+```tsx
+import Author from "@/components/ui/Author";
+...
+<div>작성자 : <Author post={post} /></div>
+...
+```
+
+### 5.4.3 타입 정의
+- /app/guide/chat/_types/chat.ts
+
+```tsx
+import { User } from "@/types/user";
+
+export interface ChatMessage {
+  _id?: string | number;
+  senderId: number;
+  readUserIds: number[];
+  content: string;
+  createdAt: string;
+}
+
+export type ChatType = 'ask' | 'answer';
+
+export interface ChatMember extends User {
+  leftAt?: string; // 채팅방을 나간 시간(상대방이 대화를 이어서 진행해도 이 시간 이전의 메시지는 보여주지 않음)
+}
+
+// api 서버의 응답 채팅방 타입
+export interface ChatRoom {
+  _id: number;
+  resourceType: string;
+  resourceId: number;
+  roomName: string;
+  ownerId: number; // 채팅방을 개설한 사람
+  members: ChatMember[];
+  messages: ChatMessage[];
+  updatedAt: string;
+  createdAt: string;
+}
+
+// Chat Store에서 관리하는 채팅방 타입
+export interface ChatRoomState extends ChatRoom {
+  unreadCount: number;
+  lastMessage?: ChatMessage;
+}
+```
+
+- /app/guide/chat/_types/api.ts
+
+```tsx
+import { ChatRoom } from "@/app/guide/chat/_types/chat";
+
+export interface ChatRoomListRes {
+  ok: 1;
+  item: ChatRoom[];
+}
+
+export interface ChatRoomInfoRes {
+  ok: 1;
+  item: ChatRoom;
+}
+```
+
+### 5.4.4 api 서버 호출 함수 작성
+- /app/guide/chat/_api/api.ts
+
+```tsx
+import { ErrorRes, ServerValidationError } from "@/types";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID || '';
+
+/**
+ * API 호출 중 발생하는 에러를 커스텀하기 위한 클래스
+ */
+export class ApiError extends Error {
+  status: number;
+  errors?: { [fieldName: string]: ServerValidationError };
+
+  constructor(message: string, status: number, errors?: { [fieldName: string]: ServerValidationError }) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.errors = errors;
+  }
+}
+
+// fetch api의 두번째 인자인 options를 확장
+interface ApiOptions extends RequestInit {
+  accessToken?: string;
+  params?: Record<string, string | number | boolean>;
+}
+
+/**
+ * 공통 API 호출 함수
+ */
+export async function apiCall<T extends { ok: 1, item?: unknown }>(url: string, options: ApiOptions = {}): Promise<T['item']> {
+  const { accessToken, ...restOptions } = options;
+
+  const headers = new Headers(restOptions.headers);
+  headers.set('client-id', CLIENT_ID);
+  
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
+  if (accessToken) {
+    headers.set('Authorization', `Bearer ${accessToken}`);
+  }
+
+  try {
+    // url에 쿼리 파라미터가 있을 경우
+    const queryParams = new URLSearchParams();
+    if (options.params) {
+      Object.entries(options.params).forEach(([key, value]) => {
+        queryParams.append(key, String(value));
+      });
+    }
+
+    const queryString = queryParams.toString();
+    const fullUrl = (url.startsWith('http') ? url : `${API_URL}${url}`) + (queryString ? `?${queryString}` : '');
+    console.log(fullUrl);
+    const res = await fetch(fullUrl, {
+      ...restOptions,
+      headers,
+    });
+
+    const data: T | ErrorRes = await res.json();
+
+    if (!data.ok) {
+      throw new ApiError(
+        data.message,
+        res.status,
+        data.errors
+      );
+    }
+
+    return data.item;
+  } catch (error) {
+    console.error('에러 발생', error);
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    // 네트워크 장애 등 예기치 않은 에러    
+    throw new ApiError(
+      error instanceof Error ? error.message : '일시적인 문제로 에러가 발생했습니다.',
+      500
+    );
+  }
+}
+```
+
+- /app/guide/chat/_api/chat.ts
+
+```tsx
+import { ChatRoomInfoRes, ChatRoomListRes } from "@/app/guide/chat/_types/api";
+import { apiCall } from "@/app/guide/chat/_api/api";
+
+/**
+ * 내 채팅방 목록 조회
+ */
+export async function getMyRooms(accessToken: string) {
+  return apiCall<ChatRoomListRes>(`/chats`, { accessToken });
+}
+
+/**
+ * 채팅방 상세 조회(없을 경우 생성)
+ */
+export async function getRoomInfo({ accessToken, resourceType, resourceId }: { accessToken: string, resourceType: string, resourceId: number }) {
+  return apiCall<ChatRoomInfoRes>(`/chats/${resourceType}/${resourceId}`, { accessToken });
+}
+```
+
+### 5.4.5 Zustand 스토어 작성
+- /app/guide/chat/_zustand/chatStore.ts
+
+```tsx
+'use client'
+import { create } from 'zustand';
+import { io, Socket } from 'socket.io-client';
+import { ChatMessage, ChatRoom, ChatRoomState } from '@/app/guide/chat/_types/chat';
+import { User } from '@/types';
+import { getMyRooms } from '@/app/guide/chat/_api/chat';
+
+const SERVER = process.env.NEXT_PUBLIC_PRIVATE_CHAT_URL;
+const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
+
+interface ChatStoreState {
+  chatSocket: Socket | null;
+  isConnecting: boolean; // 채팅 소켓 연결중인지 여부
+  isInitialized: boolean; // 방 목록 조회가 완료되었는지 여부
+  messagesByRoom: Record<number, ChatMessage[]>; // 채팅 룸별 메시지
+  rooms: ChatRoomState[]; // 채팅 룸 목록(메시지는 포함 안됨)
+  activeRoomId: number | undefined; // 현재 활성화된 채팅 룸
+  
+  // Actions
+  connectSocket: (user: User) => void; // 채팅 소켓 연결
+  disconnectSocket: () => void; // 채팅 소켓 연결 해제
+  setMessages: (roomId: number, messages: ChatMessage[]) => void; // 채팅 룸별 메시지 설정
+  setActiveRoomId: (roomId: number | undefined) => void; // 현재 활성화된 채팅 룸 설정
+  setRooms: (serverRooms: ChatRoom[], userId: number) => void; // 채팅 룸 목록 설정
+  addRooms: (room: ChatRoom, userId: number) => void; // 채팅 룸 추가
+  leaveRoom: (roomId: number) => void; // 채팅 룸 제거
+}
+
+// 싱글톤 패턴으로 채팅 소켓을 관리
+// 채팅 서버에 연결하고, 사용자 전용 룸을 생성하고, 수신한 메시지를 저장
+const useChatStore = create<ChatStoreState>((set, get) => ({
+  chatSocket: null,
+  isConnecting: false,
+  isInitialized: false,
+  messagesByRoom: {},
+  rooms: [],
+  activeRoomId: undefined,
+
+  // 채팅 소켓 연결
+  connectSocket: async (user: User) => {
+    // 로그인 정보가 없거나 소켓 연결 중이거나 연결이 된 상태면 연결하지 않음
+    if (!user || get().chatSocket?.connected || get().isConnecting) return;
+
+    console.log('채팅 서버 연결 시도...');
+    set({ isConnecting: true }); // 상태 변경
+
+    try {
+      // 채팅 웹소켓 서버 연결
+      const socket = io(`${SERVER}/${CLIENT_ID}`, {
+        transports: ['websocket'], // HTTP 폴링 방식 대신 웹소켓으로 바로 연결
+        reconnectionAttempts: 5, // 연결 실패 시 5번 재시도
+      });
+
+      // connect: 웹소켓 서버에 성공적으로 연결되었을 때 발생하는 이벤트
+      socket.on('connect', () => {
+        console.log('채팅 서버 연결 완료');
+        set({ chatSocket: socket, isConnecting: false }); // 상태 변경
+        
+        // 메시지 수신을 위한 사용자 id 등록
+        socket.emit('setUser', { userId: user._id, nickName: user.name });
+        
+        // 현재 활성화된 방 유지(연결이 끊긴 후 재연결 될때 활성화된 방 인식)
+        const roomId = get().activeRoomId;
+        if (roomId) socket.emit('setActiveRoomId', roomId);
+      });
+
+      // 채팅 메시지 수신시 발생하는 이벤트(채팅 서버에서 커스텀으로 정의한 이벤트)
+      socket.on('message', async (msg: ChatMessage & { roomId: number }) => {
+        const state = get();
+        const roomId = msg.roomId;
+        const targetRoom = state.rooms.find(room => room._id === roomId);
+
+        // 1. 만약 채팅 목록에 없는 방의 메시지라면, 방 목록을 새로고침
+        if (!targetRoom) {
+          const serverRooms = await getMyRooms(user.token!.accessToken);
+          get().setRooms(serverRooms, user._id);
+          return;
+        }
+
+        // 2. 활성화된 채팅룸의 메시지 목록 및 상태 업데이트
+        set((state) => {
+          const currentMessages = state.messagesByRoom[roomId] || [];
+          const updatedMessages = [...currentMessages, msg];
+          
+          const otherRooms = state.rooms.filter(room => room._id !== roomId);
+          const isMyMessage = msg.senderId === user._id;
+          const isActiveRoom = state.activeRoomId === roomId;
+
+          const updatedRoom: ChatRoomState = { 
+            ...targetRoom, 
+            lastMessage: msg,
+            unreadCount: (!isMyMessage && !isActiveRoom) ? (targetRoom.unreadCount || 0) + 1 : targetRoom.unreadCount
+          };
+
+          return {
+            messagesByRoom: { ...state.messagesByRoom, [roomId]: updatedMessages },
+            rooms: [updatedRoom, ...otherRooms]
+          };
+        });
+      });
+
+      // 연결 에러
+      socket.on('connect_error', () => set({ isConnecting: false }));
+
+      // 연결이 끊어졌을 경우 소켓을 null로 초기화
+      socket.on('disconnect', () => set({ chatSocket: null, isConnecting: false }));
+
+      // 상대방의 메시지 읽음 확인 신호 수신
+      socket.on('readReceipt', ({ roomId, userId }: { roomId: number, userId: number }) => {
+        set((state) => {
+          const currentMessages = state.messagesByRoom[roomId] || [];
+          if (currentMessages.length === 0) return state;
+
+          const updatedMessages = currentMessages.map(msg => ({
+            ...msg,
+            readUserIds: msg.readUserIds.includes(userId) 
+              ? msg.readUserIds 
+              : [...msg.readUserIds, userId]
+          }));
+
+          return {
+            messagesByRoom: { 
+              ...state.messagesByRoom, 
+              [roomId]: updatedMessages 
+            }
+          };
+        });
+      });
+
+      set({ chatSocket: socket });
+
+      // 리스너 등록 후 방 목록 API 호출
+      const serverRooms = await getMyRooms(user.token!.accessToken);
+      get().setRooms(serverRooms, user._id);
+
+    } catch (err) {
+      console.error('채팅 서버 연결 실패:', err);
+      set({ isConnecting: false });
+    }
+  },
+
+  // 채팅 소켓 연결 해제
+  disconnectSocket: () => {
+    const { chatSocket } = get();
+    if (chatSocket) {
+      chatSocket.disconnect();
+      set({ chatSocket: null, isConnecting: false });
+      console.log('채팅 소켓 연결 해제됨');
+    }
+  },
+
+  // 채팅 룸별 메시지 설정(해당 룸 선택시 api 서버에서 룸 상세정보 조회후 호출됨)
+  setMessages: (roomId, messages) => 
+    set((state) => ({ 
+      messagesByRoom: { ...state.messagesByRoom, [roomId]: messages } 
+    })),
+
+  // 보고 있는 채팅룸 지정
+  setActiveRoomId: (roomId) => set((state) => ({ 
+    activeRoomId: roomId,
+    // 활성화된 방의 읽지 않은 메시지 수를 0으로 초기화
+    rooms: state.rooms.map(room => 
+      room._id === roomId ? { ...room, unreadCount: 0 } : room
+    )
+  })),
+
+  // 채팅 룸 목록 설정(채팅방 목록 조회후 호출됨)
+  setRooms: (serverRooms, userId) => {
+    const rooms: ChatRoomState[] = serverRooms.map(room => ({
+      ...room,
+      lastMessage: room.messages.at(-1),
+      unreadCount: room.messages.filter(msg => !msg.readUserIds.includes(userId)).length
+    }));
+    set({ rooms, isInitialized: true });
+  },
+
+  // 채팅방 추가 (이미 목록에 있으면 놔두고 없으면 추가)
+  addRooms: (room, userId) => set((state) => {
+    const exists = state.rooms.some(r => r._id === room._id);
+    if (exists) return state; // 이미 목록에 있으면 상태 변경 없음
+
+    // 새로운 방을 ChatRoomState 형식으로 변환
+    const newRoom: ChatRoomState = {
+      ...room,
+      lastMessage: room.messages.at(-1),
+      unreadCount: room.messages.filter(msg => !msg.readUserIds.includes(userId)).length || 0
+    };
+
+    return { 
+      rooms: [newRoom, ...state.rooms] 
+    };
+  }),
+
+  // 채팅방 나가기 (채팅 목록에서 삭제)
+  leaveRoom: (roomId) => set((state) => {
+    const updatedRooms = state.rooms.filter(room => room._id === roomId ? false : true);
+    const newMessagesByRoom = { ...state.messagesByRoom };
+    delete newMessagesByRoom[roomId];
+
+    return {
+      rooms: updatedRooms,
+      messagesByRoom: newMessagesByRoom,
+      activeRoomId: state.activeRoomId === roomId ? undefined : state.activeRoomId
+    };
+  }),
+}));
+
+export default useChatStore;
+```
+
+### 5.4.6 useChat 훅 작성
+- /app/guide/chat/_hooks/useChat.ts
+
+```tsx
+import { useCallback, useEffect, useMemo } from 'react';
+import { getRoomInfo } from '@/app/guide/chat/_api/chat';
+import useChatStore from '@/app/guide/chat/_zustand/chatStore';
+import useUserStore from '@/zustand/userStore';
+
+
+export default function useChat() {
+  const { user } = useUserStore();
+  const accessToken = user?.token?.accessToken;
+  
+  const { 
+    chatSocket,       // 채팅 소켓 객체
+    connectSocket,    // 소켓 연결 함수
+    disconnectSocket, // 소켓 연결 해제 함수
+    messagesByRoom,   // 룸 ID별 메시지 목록
+    setMessages,      // 메시지 설정 함수
+    rooms,            // 채팅 룸 목록
+    activeRoomId,     // 현재 활성화된 룸 ID
+    setActiveRoomId,  // 활성 룸 설정 함수
+    addRooms,         // 룸 추가 함수
+  } = useChatStore();
+
+
+  // 모든 채팅방의 읽지 않은 메시지 수 합계
+  const totalUnreadCount = useMemo(() => {
+    return rooms.reduce((acc, room) => acc + (room.unreadCount || 0), 0);
+  }, [rooms]);
+
+
+  // 로그인된 사용자라면 채팅 서버에 연결하고, 그렇지 않다면 연결 해제
+  useEffect(() => {
+    if(user){
+      connectSocket(user);
+    }else{
+      disconnectSocket();
+    }
+  }, [user, connectSocket, disconnectSocket]);
+
+  // 채팅방 입장 (기존 방 선택 혹은 새로운 상대와의 채팅 시작)
+  const enterRoom = useCallback(async ({ resourceType, resourceId }: { resourceType: string, resourceId: number }) => {
+    if (!accessToken || !user) return;
+
+    // 이미 존재하는 방을 선택할 경우 우선 활성화 (빠른 반응성)
+    if (resourceType === 'room') {
+      setActiveRoomId(resourceId);
+    }
+
+    try {
+      // 1. 조건에 맞는 채팅방 정보를 서버에 요청 (없으면 서버에서 생성하여 반환)
+      const targetRoom = await getRoomInfo({ accessToken, resourceType, resourceId });
+
+      // 2. 채팅방 활성화 및 과거 메시지 설정
+      setActiveRoomId(targetRoom._id);
+      setMessages(targetRoom._id, targetRoom.messages || []);
+
+      // 3. 채팅방 목록에 추가
+      addRooms(targetRoom, user._id);
+        
+      // 4. 소켓 서버에 현재 활성 룸 알림
+      if (chatSocket?.connected) {
+        chatSocket.emit('setActiveRoomId', targetRoom._id);
+      }
+    } catch (err) {
+      if(err instanceof Error) {
+        console.error('[useChat] 방 입장 실패:', err.message);
+      }
+    }
+  }, [accessToken, user, setActiveRoomId, setMessages, addRooms, chatSocket]);
+
+
+  // 메시지 전송
+  const sendMessage = useCallback(async (msg: string) => {
+    if (!user || !chatSocket?.connected || !activeRoomId) return;
+    
+    // 현재 방의 멤버 중 내가 아닌 상대방 찾기
+    const activeRoom = rooms.find(r => r._id === activeRoomId);
+    const partner = activeRoom?.members.find(m => String(m._id) !== String(user._id));
+
+    chatSocket.emit('message', { 
+      roomId: activeRoomId, 
+      targetUserId: partner?._id, 
+      content: msg 
+    });
+  }, [user, chatSocket, activeRoomId, rooms]);
+
+
+  // 채팅방 나가기
+  const leaveRoom = useCallback((chatId: number) => { 
+    if (!chatSocket) return false;
+    
+    if (confirm('이 채팅방을 나가시겠습니까? 대화 기록이 삭제됩니다.')) {
+      chatSocket.emit('leave', chatId);
+      useChatStore.getState().leaveRoom(chatId); // 목록에서 즉시 제거
+      return true;
+    }
+    return false;
+  }, [chatSocket]);
+
+
+  return { 
+    chatSocket, // 채팅 소켓 객체
+    messages: activeRoomId ? (messagesByRoom[activeRoomId] || []) : [], // 현재 활성화된 방의 메시지 목록
+    rooms, // 전체 채팅방 목록
+    activeRoomId, // 현재 활성화된 방의 ID
+    setActiveRoomId, // 활성화된 방 ID 설정 함수
+    totalUnreadCount, // 모든 방의 읽지 않은 메시지 총합
+    enterRoom, // 방 입장 함수
+    leaveRoom, // 방 나가기 함수
+    sendMessage, // 메시지 전송 함수
+  };
+
+}
+```
+
+### 5.4.7 채팅 아이콘 작성
+- /app/guide/chat/_components/ChatBadge.tsx
+
+```tsx
+'use client'
+
+import useChat from "@/app/guide/chat/_hooks/useChat";
+import Link from "next/link";
+
+export default function ChatNotification() {
+  const { totalUnreadCount } = useChat(); // 전역 채팅 소켓 연결 유지 및 카운트
+
+  return (
+    <Link
+      href="/guide/chat"
+      className="ml-4 relative flex items-center w-8 h-8 justify-center text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-orange-600 focus:z-10 focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500 dark:bg-gray-800 focus:outline-none dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700 transition-colors"
+    >
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+      {totalUnreadCount > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] font-bold text-white shadow-sm animate-pulse">
+          {totalUnreadCount > 99 ? '99+' : totalUnreadCount}
+        </span>
+      )}
+      <span className="sr-only">채팅함 이동 (알림 {totalUnreadCount}개)</span>
+    </Link>
+  );
+}
+```
+
+- /components/common/Header.tsx
+
+```tsx
+import ChatBadge from "@/app/guide/chat/_components/ChatBadge";
+...
+{user ? (
+  <>
+    <form onSubmit={handleLogout}>
+      ...
+    </form>
+    <NotificationBadge />
+    <ChatBadge />
+  </>
+) : (
+  <div className="flex justify-end">
+    ...
+  </div>
+)}
+```
+
+### 5.4.8 채팅방 목록 컴포넌트 작성
+- /app/guide/chat/ChatRoomItem.tsx
+
+```tsx
+import { ChatRoomState } from "@/app/guide/chat/_types/chat";
+import useUserStore from "@/zustand/userStore";
+import Image from "next/image";
+
+interface ChatRoomItemProps {
+  room: ChatRoomState;             // 채팅방 상태 정보 (방 정보, 마지막 메시지, 읽지 않은 수 등)
+  isActive: boolean;               // 현재 활성화(선택)된 방인지 여부
+  onSelect: (id: string) => void;  // 방 선택 시 실행될 핸들러
+  onLeave: (id: string) => void;   // 방 나가기 버튼 클릭 시 실행될 핸들러
+}
+
+export default function ChatRoomItem({ room, isActive, onSelect, onLeave }: ChatRoomItemProps) {
+  const { user: currentUser } = useUserStore();
+
+  // 현재 로그인한 사용자를 제외한 상대방 정보 추출
+  const partner = room.members.find(m => String(m._id) !== String(currentUser?._id));
+  const displayName = partner?.name || '알 수 없는 사용자';
+  const displayImage = partner?.image || '/images/favicon.svg';
+
+  // 마지막 메시지 정보
+  const lastMessage = room.lastMessage;
+
+  // 채팅방 유형 정의 (본인이 만든 방일 경우 '문의', 상대방이 만든 방일 경우 '답변')
+  const chatType = room.ownerId === currentUser?._id ? '문의' : '답변';
+
+  // 읽지 않은 메시지 수
+  const unreadCount = room.unreadCount || 0;
+
+  // 마지막 메시지 내용 렌더링 함수
+  const renderLastMessage = () => {
+    if (!lastMessage) return '새로운 채팅방이 생성되었습니다.';
+    return lastMessage.content || '새로운 메시지가 있습니다.';
+  };
+
+  // 채팅방 나가기 클릭 핸들러 (부모로 이벤트 전달)
+  const handleLeave = (e: React.MouseEvent) => {
+    e.stopPropagation(); // 부모의 onClick(onSelect) 방지
+    onLeave(String(room._id));
+  };
+
+  return (
+    <div
+      onClick={() => onSelect(String(room._id))}
+      className={`group relative flex items-center p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${isActive ? 'bg-orange-50 dark:bg-gray-700' : ''}`}
+    >
+      <button
+        onClick={handleLeave}
+        className="absolute top-2 right-2 p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-opacity z-10"
+        title="나가기"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="relative shrink-0">
+        <Image
+          src={displayImage}
+          alt={displayName}
+          width={40}
+          height={40}
+          className="w-12 h-12 rounded-full bg-gray-200 object-cover"
+        />
+        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
+      </div>
+
+      <div className="ml-4 flex-1 min-w-0">
+        <div className="flex justify-between items-center mb-1 pr-5">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {displayName}
+            </h3>
+            <span className="shrink-0 text-[10px] px-1.2 py-0.3 rounded border bg-orange-50 text-orange-600 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800">
+              {chatType}
+            </span>
+          </div>
+          <span className="text-[10px] text-gray-500 dark:text-gray-400 ml-2 shrink-0">
+            {lastMessage?.createdAt || room.updatedAt || ''}
+          </span>
+        </div>
+
+        {room.roomName && (
+          <div className="mb-1 min-w-0">
+            <span className="text-[10px] text-gray-800 dark:text-gray-300 truncate font-medium block">
+              <span className="text-gray-500 dark:text-gray-500 font-normal mr-1">게시글:</span>
+              {room.roomName}
+            </span>
+          </div>
+        )}
+        <div className="flex justify-between items-center">
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate pr-2">{renderLastMessage()}</p>
+          {unreadCount > 0 && (
+            <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-4.5 px-1 text-[10px] font-bold text-white bg-orange-500 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+- /app/guide/chat/ChatRoomList.tsx
+
+```tsx
+import ChatRoomItem from "./ChatRoomItem";
+import { ChatRoomState } from "@/app/guide/chat/_types/chat";
+
+interface ChatRoomListProps {
+  rooms: ChatRoomState[];             // 표시할 채팅방 목록
+  activeRoomId: number | undefined;   // 현재 선택되어 활성화된 방 ID
+  onSelectRoom: (id: string) => void; // 방 선택 시 호출되는 콜백 함수
+  onLeaveRoom: (id: string) => void;  // 방 나가기 버튼 클릭 시 호출되는 콜백 함수
+}
+
+export default function ChatRoomList({ rooms, activeRoomId, onSelectRoom, onLeaveRoom }: ChatRoomListProps) {
+  return (
+    <div className={`${activeRoomId ? 'hidden md:flex' : 'flex'} w-full md:w-80 flex-col h-full border-r border-gray-200 dark:border-gray-700 shrink-0`}>
+      {/* 목록 헤더 */}
+      <div className="h-16 px-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-white dark:bg-gray-800/50">
+        <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">채팅 목록</h2>
+      </div>
+
+      {/* 검색바 */}
+      <div className="p-3">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="상대방 검색..."
+            className="w-full pl-9 pr-3 py-2 bg-gray-100 dark:bg-gray-700 border-none rounded-lg text-sm focus:ring-2 focus:ring-orange-500 transition-shadow"
+          />
+          <svg className="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
+      {/* 채팅방 목록 */}
+      <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-700">
+        {rooms.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8 text-gray-400 text-center">
+            <p className="text-sm">참여 중인 대화가 없습니다.</p>
+          </div>
+        ) : (
+          rooms.map((room) => (
+            <ChatRoomItem
+              key={room._id}
+              room={room}
+              isActive={activeRoomId === room._id}
+              onSelect={onSelectRoom}
+              onLeave={onLeaveRoom}
+            />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+```
+
+### 5.4.9 채팅방 컴포넌트 작성
+- /app/guide/chat/MessageBubble.tsx
+
+```tsx
+import { ChatMessage } from "@/app/guide/chat/_types/chat";
+import { User } from "@/types";
+import Image from "next/image";
+
+interface MessageBubbleProps {
+  message: ChatMessage; // 표시할 메시지 객체
+  isMe: boolean;        // 본인이 보낸 메시지인지 여부
+  sender?: User;        // 메시지 발신인 정보 (상대방 메시지인 경우에만 주로 사용)
+}
+
+export default function MessageBubble({ message, isMe, sender }: MessageBubbleProps) {
+  // 프로필 이미지 경로 (없으면 기본 이미지)
+  const displayImage = sender?.image || '/images/favicon.svg';
+
+  // 시간 포맷팅 함수 (MM-DD HH:mm 형식)
+  const formatTime = (createdAt: string) => {
+    return createdAt ? createdAt.substring(5) : '';
+  };
+
+  return (
+    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+      <div className={`flex max-w-[80%] md:max-w-[70%] ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
+        {/* 상대방 메시지일 경우에만 프로필 이미지 표시 */}
+        {!isMe && (
+          <Image
+            src={displayImage}
+            alt="Profile"
+            width={32}
+            height={32}
+            className="w-8 h-8 rounded-full bg-gray-200 mb-1 object-cover shrink-0"
+          />
+        )}
+        {/* 메시지 말풍선 */}
+        <div className={`px-4 py-2 rounded-2xl shadow-sm relative ${isMe
+            ? 'bg-orange-500 text-white rounded-br-none'
+            : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-bl-none border border-gray-100 dark:border-gray-700'
+          }`}>
+          <p className="text-sm whitespace-pre-wrap leading-relaxed break-words">{message.content}</p>
+
+          {/* 메시지 부가 정보 (시간, 읽음 상태) */}
+          <div className={`absolute bottom-0 ${isMe ? '-left-36' : '-right-36'} flex flex-col ${isMe ? 'items-end' : 'items-start'} w-32 mb-1 gap-1`}>
+            {/* 내가 보낸 메시지인데 상대방이 아직 안 읽었을 때만 '1' 표시 */}
+            {isMe && message.readUserIds && message.readUserIds.length < 2 && (
+              <span className="text-[10px] font-bold text-orange-400">1</span>
+            )}
+            <span className="text-[9px] text-gray-400 whitespace-nowrap">
+              {formatTime(message.createdAt)}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  );
+}
+```
+
+- /app/guide/chat/ChatRoom.tsx
+
+```tsx
+import useChat from "@/app/guide/chat/_hooks/useChat";
+import MessageBubble from "@/app/guide/chat/MessageBubble";
+import useUserStore from "@/zustand/userStore";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+
+export default function ChatRoom() {
+  const messagesEndRef = useRef<HTMLDivElement>(null); // 채팅창 하단 스크롤을 위한 Ref
+  const router = useRouter();
+  const pathname = usePathname();
+  const [inputText, setInputText] = useState(''); // 메시지 입력창 상태
+  // useChat 훅에서 채팅 관련 상태와 액션들을 가져옴
+  const { activeRoomId, setActiveRoomId, rooms, messages, sendMessage, leaveRoom } = useChat();
+  const user = useUserStore(state => state.user); // 현재 로그인한 사용자 정보
+
+  // 메시지 변경 시 실행
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  if (!user) return null;
+
+  // 현재 활성화된 방 정보 찾기
+  const activeRoom = rooms.find(r =>
+    activeRoomId !== undefined &&
+    String(r._id) === String(activeRoomId)
+  );
+
+  // 현재 방의 멤버 중 내가 아닌 상대방 정보 추출
+  const partner = activeRoom?.members.find(m => String(m._id) !== String(user._id));
+
+  // 본인이 방의 개설자(ownerId)이면 '문의', 아니면 '답변'으로 표시
+  const chatType = activeRoom?.ownerId === user._id ? '문의' : '답변';
+
+  // 메시지 전송 핸들러
+  const handleSendMessage = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!inputText.trim() || !user) return;
+    await sendMessage(inputText);
+    setInputText('');
+  };
+
+  return (
+    <div className={`${!activeRoomId ? 'hidden md:flex' : 'flex'} flex-1 flex flex-col min-h-0 bg-slate-50 dark:bg-gray-900 border-none overflow-hidden`}>
+      {activeRoomId && partner ? (
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* 채팅방 상단 헤더: 상대방 정보 및 나가기 버튼 */}
+          <div className="h-16 px-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 shadow-sm z-10 shrink-0">
+
+            <div className="flex items-center">
+              <button
+                onClick={() => {
+                  setActiveRoomId(undefined);
+                  router.replace(pathname);
+                }}
+                className="md:hidden mr-4 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              </button>
+              <div className="flex items-center">
+                <Image
+                  src={partner?.image || '/images/favicon.svg'}
+                  alt={partner.name}
+                  width={40}
+                  height={40}
+                  className="w-10 h-10 rounded-full bg-gray-200 object-cover"
+                />
+                <div className="ml-3 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-gray-900 dark:text-white truncate">
+                      {partner?.name || '상대방'}
+                    </h3>
+                    <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 font-medium">{chatType}</span>
+                  </div>
+                  {activeRoom?.roomName && (
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[150px] md:max-w-[300px]">
+                      <span className="text-gray-400 mr-1">게시글:</span>
+                      {activeRoom.roomName}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (leaveRoom(activeRoomId)) {
+                    router.replace(pathname);
+                  }
+                }}
+                className="p-2 text-gray-400 hover:text-red-500 rounded-full hover:bg-red-50 transition-colors"
+                title="대화방 나가기"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+              </button>
+            </div>
+          </div>
+
+          {/* 중간 영역: 채팅 메시지들이 표시되는 스크롤 영역 */}
+          <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 bg-slate-50 dark:bg-gray-900">
+
+            {!activeRoom || !messages.length ? (
+              <div className="flex flex-col items-center justify-center h-full opacity-40">
+                <p className="text-sm">아직 대화가 없습니다.</p>
+                <p className="text-xs">첫 메시지를 보내 대화를 시작해보세요!</p>
+              </div>
+            ) : (
+              messages.map((msg, index) => (
+                <MessageBubble
+                  key={msg._id || index}
+                  message={msg}
+                  isMe={String(msg.senderId) === String(user._id)}
+                  sender={partner || undefined}
+                />
+              ))
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* 하단 영역: 메시지 입력 폼 */}
+          <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 mt-auto">
+
+            <form
+              onSubmit={handleSendMessage}
+              className="flex gap-2">
+              <div className="flex-1 relative">
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="메시지를 입력하세요..."
+                  className="w-full pl-4 pr-12 py-3 bg-gray-100 dark:bg-gray-700 border-none rounded-full text-sm focus:ring-2 focus:ring-orange-500 focus:bg-white dark:focus:bg-gray-800 transition-all shadow-inner"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputText.trim()}
+                  className="absolute right-1.5 top-1.5 p-1.5 bg-orange-500 text-white rounded-full hover:bg-orange-600 disabled:opacity-50 disabled:hover:bg-orange-500 transition-colors shadow-md"
+                >
+                  <svg
+                    className="w-5 h-5 translate-x-0.5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+                  </svg>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 p-8 text-center">
+          {/* 선택된 채팅방이 없을 때 표시되는 빈 화면 */}
+
+          <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-6">
+            <svg className="w-12 h-12 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+          </div>
+          <h3 className="text-lg font-bold text-gray-600 dark:text-gray-300 mb-2">채팅을 시작해보세요</h3>
+          <p className="text-sm max-w-xs">게시글의 상대방 닉네임을 클릭한 후 쪽지나 게시글 문의를 통해 대화를 시작할 수 있습니다.</p>
+        </div>
+      )}
+
+    </div>
+  );
+}
+```
+
+### 5.4.10 웹 스토리지의 회원 정보 로딩 체크
+- /zustand/userStore.ts
+
+```tsx
+import { User } from '@/types';
+import { create, StateCreator } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+// 로그인한 사용자 정보를 관리하는 스토어의 상태 인터페이스
+interface UserStoreState {
+  user: User | null;
+  setUser: (user: User | null) => void;
+  resetUser: () => void;
+  _hasHydrated: boolean;
+  setHasHydrated: (state: boolean) => void;
+}
+
+// 로그인한 사용자 정보를 관리하는 스토어 생성
+// StateCreator: Zustand의 유틸리티 타입으로, set 함수의 타입을 자동으로 추론해줌
+// 복잡한 타입 정의 없이도 set 함수가 올바른 타입으로 인식됨
+const UserStore: StateCreator<UserStoreState> = (set) => ({
+  user: null,
+  setUser: (user: User | null) => set({ user }),
+  resetUser: () => set({ user: null }),
+  _hasHydrated: false,
+  setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
+});
+
+// 스토리지를 사용하지 않을 경우
+// const useUserStore = create<UserStoreState>(UserStore);
+
+// 스토리지를 사용할 경우 (sessionStorage에 저장)
+const useUserStore = create<UserStoreState>()(
+  persist(UserStore, {
+    name: 'user',
+    storage: createJSONStorage(() => sessionStorage), // 기본은 localStorage
+    // 스토리지에서 데이터를 불러온 직후 호출되는 콜백
+    onRehydrateStorage: () => (state) => {
+      state?.setHasHydrated(true); // 로그인 정보 복원 완료 플래그를 true로 설정
+    }
+  })
+);
+
+export default useUserStore;
+```
+
+### 5.4.11 채팅 메인페이지 컴포넌트 작성
+- /app/guide/chat/ChatMain.tsx
+
+```tsx
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import ChatRoomList from '@/app/guide/chat/ChatRoomList';
+import useChat from '@/app/guide/chat/_hooks/useChat';
+import { ChatRoomState } from '@/app/guide/chat/_types/chat';
+import useUserStore from '@/zustand/userStore';
+import ChatRoom from '@/app/guide/chat/ChatRoom';
+
+interface ChatMainProps {
+  postId?: string; // 특정 게시물 페이지에서 채팅하기 버튼을 눌러 들어온 경우 게시물 ID
+  userId?: string; // 특정 유저 프로필에서 채팅하기 버튼을 눌러 들어온 경우 유저 ID
+}
+
+export default function ChatMain({ postId, userId }: ChatMainProps) {
+  const {
+    rooms, // 채팅방 목록
+    activeRoomId, // 현재 활성화된 방의 ID
+    leaveRoom, // 채팅방 나가기
+    enterRoom // 채팅방 입장
+  } = useChat();
+
+  const { user: currentUser, _hasHydrated } = useUserStore();
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // 하이드레이션이 끝나지 않았으면 아무것도 하지 않음
+    if (!_hasHydrated) return;
+    if (!currentUser) {
+      const redirectUrl = encodeURIComponent(pathname + (searchParams.toString() ? '?' + searchParams.toString() : ''));
+      router.replace(`/login?redirect=${redirectUrl}`);
+    }
+  }, [currentUser, _hasHydrated, router, pathname, searchParams]);
+
+  // 초기 데이터 로드 및 가상 파트너 정보 가져오기
+  useEffect(() => {
+    if (!currentUser?._id) return;
+
+    const init = async () => {
+      // 전달받은 정보를 기반으로 해당 채팅방 입장
+      // postId: 게시글 ID(게시글에 대한 작성자와의 채팅), userId: 사용자 ID(사용자와의 일반 채팅)
+      if (postId) {
+        await enterRoom({ resourceType: 'post', resourceId: Number(postId) });
+      } else if (userId) {
+        await enterRoom({ resourceType: 'user', resourceId: Number(userId) });
+      }
+    };
+
+    init();
+  }, [currentUser, postId, userId, enterRoom]);
+
+  if (!currentUser) {
+    return (
+      <div className="flex justify-center items-center min-h-[300px]">
+        <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+          잠시만 기다려 주세요...
+        </h3>
+      </div>
+    );
+  }
+
+  return (
+    <main className="fixed top-[70px] left-0 right-0 bottom-0 flex flex-col overflow-hidden bg-white dark:bg-gray-800 z-0">
+      <div className="flex-1 flex items-stretch h-full min-h-0 overflow-hidden">
+
+        {/* 채팅방 목록 */}
+        <ChatRoomList
+          rooms={rooms as ChatRoomState[]}
+          activeRoomId={activeRoomId}
+          onSelectRoom={(id) => {
+            enterRoom({ resourceType: 'room', resourceId: Number(id) });
+            // 선택 시 URL 파라미터 초기화
+            router.replace(pathname);
+          }}
+          onLeaveRoom={(id) => { leaveRoom(Number(id)); }}
+        />
+
+        {/* 채팅방 상세보기 영역 */}
+        <ChatRoom />
+      </div>
+    </main>
+  );
+}
+```
+
+- /app/guide/chat/page.tsx
+
+```tsx
+import ChatMain from './ChatMain';
+import { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: '채팅 - 라이언 보드',
+  description: '판매자와 구매자가 실시간으로 소통하는 채팅 서비스입니다.',
+};
+
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ post_id?: string; user_id?: string }> }) {
+  const { post_id, user_id } = await searchParams;
+
+  return (
+    <ChatMain
+      postId={post_id}
+      userId={user_id}
+    />
+  );
+}
+```
