@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button, LinkButton } from "@/components/ui/Button";
 import NotificationBadge from "@/app/guide/notification/_components/NotificationBadge";
+import ChatBadge from "@/app/guide/chat/_components/ChatBadge";
 
 export default function Header() {
   const { user, resetUser } = useUserStore();
@@ -33,27 +34,30 @@ export default function Header() {
         <div className="w-1/2 order-1 flex justify-end items-center md:order-2 md:w-auto">
 
           {user ? (
-            <form onSubmit={handleLogout}>
-              <p className="flex items-center">
-                <Image
-                  className="w-8 rounded-full mr-2"
-                  src={user.image || '/images/favicon.svg'}
-                  alt={`${user.name}님 프로필 이미지`}
-                  width="24"
-                  height="24"
-                />
-                {user.name}님
-                <Button type="submit" size="sm" bgColor="gray">로그아웃</Button>
-              </p>
-            </form>
+            <>
+              <form onSubmit={handleLogout}>
+                <p className="flex items-center">
+                  <Image
+                    className="w-8 rounded-full mr-2"
+                    src={user.image || '/images/favicon.svg'}
+                    alt={`${user.name}님 프로필 이미지`}
+                    width="24"
+                    height="24"
+                  />
+                  {user.name}님
+                  <Button type="submit" size="sm" bgColor="gray">로그아웃</Button>
+                </p>
+              </form>
+              <NotificationBadge />
+              <ChatBadge />
+            </>
+
           ) : (
             <div className="flex justify-end">
               <LinkButton href="/login" size="sm" bgColor="orange">로그인</LinkButton>
               <LinkButton href="/signup" size="sm" bgColor="gray">회원가입</LinkButton>
             </div>
           )}
-
-          <NotificationBadge />
 
           <button
             type="button"
